@@ -141,10 +141,13 @@
   "scripts": {
     "build": "tsc -p .",
     "check": "tsc -p . --noEmit",
+    "vscode:prepublish": "npm run build",
+    "package:vsix": "vsce package",
     "test": "vitest run",
     "watch": "tsc -p . --watch"
   },
   "devDependencies": {
+    "@vscode/vsce": "^3.6.0",
     "@types/node": "^24.10.1",
     "@types/vscode": "^1.96.0",
     "typescript": "^5.9.3",

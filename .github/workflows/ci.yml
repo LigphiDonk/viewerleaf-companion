@@ -2,8 +2,8 @@ name: ci
 
 on:
   push:
-    branches: ["main"]
   pull_request:
+  workflow_dispatch:
 
 jobs:
   test:
@@ -26,3 +26,29 @@ jobs:
 
       - name: Test
         run: npm run test
+
+  package-vsix:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Package VSIX
+        run: npm run package:vsix
+
+      - name: Upload VSIX Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: viewerleaf-companion-vsix
+          path: "*.vsix"
+          if-no-files-found: error

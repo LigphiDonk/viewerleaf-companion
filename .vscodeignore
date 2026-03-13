@@ -1,4 +1,6 @@
 .github/**
+.vscode/**
+.gitignore
 src/**
 media/arsenal-preview.svg
 vitest.config.ts
