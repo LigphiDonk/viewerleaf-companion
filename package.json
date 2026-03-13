@@ -114,6 +114,16 @@
         }
       ]
     },
+    "customEditors": [
+      {
+        "viewType": "viewerleaf.visualEditor",
+        "displayName": "Visual Editor",
+        "selector": [
+          { "filenamePattern": "*.tex" }
+        ],
+        "priority": "option"
+      }
+    ],
     "menus": {
       "view/title": [
         {

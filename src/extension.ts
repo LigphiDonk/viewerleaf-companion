@@ -8,6 +8,7 @@ import type { AcademicSkill } from "./types";
 import { ArsenalViewProvider } from "./views/arsenalViewProvider";
 import { ViewerLeafOutlineProvider } from "./views/outlineProvider";
 import { RichPreviewProvider } from "./views/richPreviewProvider";
+import { VisualEditorProvider } from "./editors/visualEditorProvider";
 import { isTexDocument } from "./workspace";
 
 export function activate(context: vscode.ExtensionContext) {
@@ -70,6 +71,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     outlineTreeView,
     richPreviewProvider,
+    VisualEditorProvider.register(context),
     { dispose: () => skillWatcher?.dispose() },
     vscode.window.registerWebviewViewProvider("viewerleafArsenal", arsenalProvider, {
       webviewOptions: { retainContextWhenHidden: true },
