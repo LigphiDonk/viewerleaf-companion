@@ -240,86 +240,49 @@ export class ArsenalViewProvider implements vscode.WebviewViewProvider {
               background: var(--vscode-sideBar-background);
             }
 
-            .sidebar {
-              padding: 20px 16px;
+            .toolbar {
               display: flex;
-              flex-direction: column;
-              gap: 20px;
+              gap: 8px;
+              padding: 14px 12px;
             }
 
-            .brand {
+            .tb-btn {
+              flex: 1;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 6px;
+              padding: 8px 0;
+              border: 1px solid color-mix(in srgb, var(--vscode-foreground) 10%, transparent);
+              border-radius: 8px;
+              background: color-mix(in srgb, var(--vscode-foreground) 4%, transparent);
+              color: var(--vscode-foreground);
               font-size: 12px;
               font-weight: 600;
-              letter-spacing: 0.04em;
-              text-transform: uppercase;
-              opacity: 0.4;
-            }
-
-            .actions {
-              display: flex;
-              flex-direction: column;
-              gap: 8px;
-            }
-
-            .action-btn {
-              width: 100%;
-              padding: 10px 14px;
-              border: 1px solid color-mix(in srgb, var(--vscode-foreground) 10%, transparent);
-              border-radius: 10px;
-              background: color-mix(in srgb, var(--vscode-foreground) 5%, transparent);
-              color: var(--vscode-foreground);
-              font-size: 13px;
-              font-weight: 500;
               cursor: pointer;
-              transition: background 150ms ease, border-color 150ms ease;
-              text-align: center;
+              transition: background 120ms ease, border-color 120ms ease;
             }
 
-            .action-btn:hover {
+            .tb-btn:hover {
               background: color-mix(in srgb, var(--vscode-foreground) 10%, transparent);
-              border-color: color-mix(in srgb, var(--vscode-foreground) 16%, transparent);
+              border-color: color-mix(in srgb, var(--vscode-foreground) 18%, transparent);
             }
 
-            .action-btn--primary {
+            .tb-btn--primary {
               background: var(--vscode-button-background);
               color: var(--vscode-button-foreground);
               border-color: transparent;
-              font-weight: 600;
             }
 
-            .action-btn--primary:hover {
+            .tb-btn--primary:hover {
               background: var(--vscode-button-hoverBackground);
               border-color: transparent;
             }
 
-            .action-btn--arsenal {
-              font-weight: 600;
-              letter-spacing: 0.02em;
-            }
-
-            .divider {
-              height: 1px;
-              background: color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
-            }
-
-            .links {
-              display: flex;
-              gap: 16px;
-              flex-wrap: wrap;
-            }
-
-            .link-btn {
-              background: none;
-              border: none;
-              color: color-mix(in srgb, var(--vscode-foreground) 45%, transparent);
-              font-size: 12px;
-              cursor: pointer;
-              padding: 0;
-              transition: color 150ms ease;
-            }
-
-            .link-btn:hover {
-              color: var(--vscode-foreground);
+            .tb-btn svg {
+              width: 14px;
+              height: 14px;
+              flex-shrink: 0;
             }
 
             /* ── Overlay ── */
@@ -333,61 +296,50 @@ export class ArsenalViewProvider implements vscode.WebviewViewProvider {
               justify-content: center;
             }
 
-            .overlay[hidden] {
-              display: none;
-            }
+            .overlay[hidden] { display: none; }
 
             .overlay__backdrop {
               position: absolute;
               inset: 0;
-              background: rgba(0, 0, 0, 0.45);
-              backdrop-filter: blur(6px);
-              -webkit-backdrop-filter: blur(6px);
-              animation: fadeIn 180ms ease;
+              background: rgba(0, 0, 0, 0.5);
+              backdrop-filter: blur(8px);
+              -webkit-backdrop-filter: blur(8px);
+              animation: fadeIn 160ms ease;
             }
 
             .overlay__card {
               position: relative;
-              width: calc(100% - 24px);
-              max-width: 300px;
+              width: calc(100% - 20px);
+              max-width: 280px;
               background: var(--vscode-editor-background);
-              border: 1px solid color-mix(in srgb, var(--vscode-foreground) 12%, transparent);
-              border-radius: 16px;
-              padding: 20px;
-              box-shadow: 0 20px 48px rgba(0, 0, 0, 0.25);
-              animation: slideUp 280ms cubic-bezier(0.16, 1, 0.3, 1);
-            }
-
-            .overlay__header {
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              margin-bottom: 18px;
-            }
-
-            .overlay__title {
-              font-size: 15px;
-              font-weight: 700;
-              letter-spacing: -0.01em;
+              border: 1px solid color-mix(in srgb, var(--vscode-foreground) 10%, transparent);
+              border-radius: 14px;
+              padding: 16px;
+              box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
+              animation: slideUp 260ms cubic-bezier(0.16, 1, 0.3, 1);
             }
 
             .overlay__close {
-              width: 28px;
-              height: 28px;
+              position: absolute;
+              top: 10px;
+              right: 10px;
+              width: 24px;
+              height: 24px;
               border: none;
-              border-radius: 8px;
-              background: color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
-              color: var(--vscode-foreground);
-              font-size: 16px;
+              border-radius: 6px;
+              background: color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
+              color: color-mix(in srgb, var(--vscode-foreground) 50%, transparent);
+              font-size: 14px;
               line-height: 1;
               cursor: pointer;
               display: grid;
               place-items: center;
-              transition: background 150ms ease;
+              transition: background 120ms ease, color 120ms ease;
             }
 
             .overlay__close:hover {
-              background: color-mix(in srgb, var(--vscode-foreground) 16%, transparent);
+              background: color-mix(in srgb, var(--vscode-foreground) 14%, transparent);
+              color: var(--vscode-foreground);
             }
 
             /* ── Weapon Grid ── */
@@ -395,52 +347,51 @@ export class ArsenalViewProvider implements vscode.WebviewViewProvider {
             .weapon-grid {
               display: grid;
               grid-template-columns: repeat(3, 1fr);
-              gap: 8px;
-              justify-items: center;
+              gap: 4px;
+              padding-top: 4px;
             }
 
             .weapon-item {
               display: flex;
               flex-direction: column;
               align-items: center;
-              gap: 8px;
-              width: 100%;
-              padding: 12px 4px;
+              gap: 6px;
+              padding: 10px 4px 8px;
               border: 1px solid transparent;
-              border-radius: 12px;
+              border-radius: 10px;
               background: transparent;
               color: var(--vscode-foreground);
               cursor: pointer;
-              transition: background 150ms ease, border-color 150ms ease;
-              animation: itemEnter 280ms ease both;
+              transition: background 120ms ease, border-color 120ms ease;
+              animation: itemEnter 250ms ease both;
               animation-delay: var(--delay);
             }
 
             .weapon-item:hover {
               background: color-mix(in srgb, var(--skill-accent) 10%, transparent);
-              border-color: color-mix(in srgb, var(--skill-accent) 18%, transparent);
+              border-color: color-mix(in srgb, var(--skill-accent) 16%, transparent);
             }
 
             .weapon-item__icon {
               position: relative;
-              width: 52px;
-              height: 52px;
-              border-radius: 14px;
+              width: 44px;
+              height: 44px;
+              border-radius: 12px;
               display: grid;
               place-items: center;
-              background: color-mix(in srgb, var(--skill-accent) 8%, var(--vscode-editor-background));
-              border: 1px solid color-mix(in srgb, var(--skill-accent) 12%, transparent);
-              transition: border-color 150ms ease;
+              background: color-mix(in srgb, var(--skill-accent) 7%, var(--vscode-editor-background));
+              border: 1px solid color-mix(in srgb, var(--skill-accent) 10%, transparent);
+              transition: border-color 120ms ease;
             }
 
             .weapon-item:hover .weapon-item__icon {
               animation: bounce 500ms ease;
-              border-color: color-mix(in srgb, var(--skill-accent) 30%, transparent);
+              border-color: color-mix(in srgb, var(--skill-accent) 28%, transparent);
             }
 
             .weapon-item__icon svg {
-              width: 36px;
-              height: 36px;
+              width: 30px;
+              height: 30px;
               display: block;
             }
 
@@ -448,23 +399,23 @@ export class ArsenalViewProvider implements vscode.WebviewViewProvider {
               position: absolute;
               top: -2px;
               right: -2px;
-              width: 8px;
-              height: 8px;
+              width: 7px;
+              height: 7px;
               border-radius: 50%;
               background: var(--skill-accent);
-              border: 2px solid var(--vscode-editor-background);
+              border: 1.5px solid var(--vscode-editor-background);
             }
 
             .weapon-item__name {
-              font-size: 11px;
-              font-weight: 600;
+              font-size: 10px;
+              font-weight: 500;
               text-align: center;
-              opacity: 0.7;
+              opacity: 0.55;
               line-height: 1.2;
             }
 
             .weapon-item:hover .weapon-item__name {
-              opacity: 1;
+              opacity: 0.9;
             }
 
             /* ── Animations ── */
@@ -475,21 +426,21 @@ export class ArsenalViewProvider implements vscode.WebviewViewProvider {
             }
 
             @keyframes slideUp {
-              from { opacity: 0; transform: translateY(16px) scale(0.95); }
+              from { opacity: 0; transform: translateY(12px) scale(0.94); }
               to { opacity: 1; transform: translateY(0) scale(1); }
             }
 
             @keyframes itemEnter {
-              from { opacity: 0; transform: scale(0.8); }
+              from { opacity: 0; transform: scale(0.75); }
               to { opacity: 1; transform: scale(1); }
             }
 
             @keyframes bounce {
               0% { transform: translateY(0) scale(1); }
-              20% { transform: translateY(-14px) scale(1.1); }
-              40% { transform: translateY(-2px) scale(1); }
-              60% { transform: translateY(-8px) scale(1.04); }
-              80% { transform: translateY(-1px) scale(1); }
+              18% { transform: translateY(-14px) scale(1.12); }
+              38% { transform: translateY(-1px) scale(1); }
+              56% { transform: translateY(-7px) scale(1.04); }
+              76% { transform: translateY(0) scale(1); }
               100% { transform: translateY(0) scale(1); }
             }
 
@@ -503,30 +454,21 @@ export class ArsenalViewProvider implements vscode.WebviewViewProvider {
           </style>
         </head>
         <body>
-          <main class="sidebar">
-            <span class="brand">ViewerLeaf</span>
-
-            <div class="actions">
-              <button class="action-btn action-btn--primary" data-action="open-workspace">Open Workspace</button>
-              <button class="action-btn action-btn--arsenal" id="arsenal-trigger">\u2694 Arsenal</button>
-            </div>
-
-            <div class="divider"></div>
-
-            <div class="links">
-              <button class="link-btn" data-action="show-outline">Outline</button>
-              <button class="link-btn" data-action="open-rich-preview">Preview</button>
-              <button class="link-btn" data-action="install-latex-workshop">LaTeX Workshop</button>
-            </div>
-          </main>
+          <div class="toolbar">
+            <button class="tb-btn tb-btn--primary" data-action="open-workspace" title="Open Workspace">
+              <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 3.5A1.5 1.5 0 0 1 3.5 2h2.764a1.5 1.5 0 0 1 1.07.449L8.5 3.5h4A1.5 1.5 0 0 1 14 5v7.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 12.5v-9z"/></svg>
+              Workspace
+            </button>
+            <button class="tb-btn" id="arsenal-trigger" title="Arsenal">
+              <svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="1" width="6" height="6" rx="1.2"/><rect x="9" y="1" width="6" height="6" rx="1.2"/><rect x="1" y="9" width="6" height="6" rx="1.2"/><rect x="9" y="9" width="6" height="6" rx="1.2"/></svg>
+              Arsenal
+            </button>
+          </div>
 
           <div class="overlay" id="arsenal-overlay" hidden>
             <div class="overlay__backdrop" id="overlay-backdrop"></div>
             <div class="overlay__card">
-              <div class="overlay__header">
-                <span class="overlay__title">Arsenal</span>
-                <button class="overlay__close" id="arsenal-close">\u00d7</button>
-              </div>
+              <button class="overlay__close" id="arsenal-close">\u00d7</button>
               <div class="weapon-grid">
                 ${skills.map((skill, index) => renderWeaponItem(skill, index)).join("")}
               </div>
