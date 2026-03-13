@@ -1,5 +1,7 @@
 import * as vscode from "vscode";
 
+import { hasLatexWorkshop, suppressAutoBuildDuring } from "../latexWorkshop";
+
 export class VisualEditorProvider implements vscode.CustomTextEditorProvider {
   public static readonly viewType = "viewerleaf.visualEditor";
 
@@ -88,6 +90,24 @@ export class VisualEditorProvider implements vscode.CustomTextEditorProvider {
           await vscode.commands.executeCommand("vscode.openWith", document.uri, "default");
           return;
         }
+        case "focusLine": {
+          if (!hasLatexWorkshop()) {
+            return;
+          }
+          await suppressAutoBuildDuring(async () => {
+            const textEditor = await vscode.window.showTextDocument(document, {
+              viewColumn: webviewPanel.viewColumn,
+              preview: true,
+              preserveFocus: false,
+            });
+            const pos = new vscode.Position(msg.line, 0);
+            textEditor.selection = new vscode.Selection(pos, pos);
+            textEditor.revealRange(new vscode.Range(pos, pos));
+            await vscode.commands.executeCommand("latex-workshop.synctex");
+            await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
+          });
+          return;
+        }
         default:
           return;
       }
@@ -103,6 +123,7 @@ type WebviewMessage =
   | { type: "splitLine"; line: number; offset: number }
   | { type: "mergeLineUp"; line: number }
   | { type: "switchToCode" }
+  | { type: "focusLine"; line: number }
   | { type: "insertCommand"; line: number; offset: number; offsetEnd: number; before: string; after: string };
 
 function getNonce() {
@@ -680,6 +701,15 @@ function buildHtml(webview: vscode.Webview, lines: string[]): string {
         document.execCommand("insertText", false, "  ");
       }
     }, true);
+
+    /* ── SyncTeX on click ── */
+
+    content.addEventListener("click", (e) => {
+      const div = e.target.closest && e.target.closest(".line");
+      if (!div) return;
+      const idx = parseInt(div.dataset.line);
+      vscode.postMessage({ type: "focusLine", line: idx });
+    });
 
     /* ── Toolbar ── */
 
