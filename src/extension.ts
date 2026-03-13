@@ -85,6 +85,12 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("viewerleaf.openRichPreview", () => {
       richPreviewProvider.open();
     }),
+    vscode.commands.registerCommand("viewerleaf.openVisualEditor", async () => {
+      const editor = vscode.window.activeTextEditor;
+      if (editor && isTexDocument(editor.document)) {
+        await vscode.commands.executeCommand("vscode.openWith", editor.document.uri, VisualEditorProvider.viewType);
+      }
+    }),
     vscode.commands.registerCommand("viewerleaf.refreshOutline", () => void outlineProvider.refresh()),
     vscode.commands.registerCommand("viewerleaf.showProjectOutline", async () => {
       await outlineProvider.refresh();

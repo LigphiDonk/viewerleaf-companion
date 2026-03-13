@@ -84,6 +84,10 @@ export class VisualEditorProvider implements vscode.CustomTextEditorProvider {
           edit.replace(document.uri, ln.range, pre + msg.before + sel + msg.after + post);
           break;
         }
+        case "switchToCode": {
+          await vscode.commands.executeCommand("vscode.openWith", document.uri, "default");
+          return;
+        }
         default:
           return;
       }
@@ -98,6 +102,7 @@ type WebviewMessage =
   | { type: "editLine"; line: number; text: string }
   | { type: "splitLine"; line: number; offset: number }
   | { type: "mergeLineUp"; line: number }
+  | { type: "switchToCode" }
   | { type: "insertCommand"; line: number; offset: number; offsetEnd: number; before: string; after: string };
 
 function getNonce() {
@@ -169,6 +174,23 @@ function buildHtml(webview: vscode.Webview, lines: string[]): string {
 
     .toolbar__btn:hover {
       background: color-mix(in srgb, var(--vscode-editor-foreground) 10%, transparent);
+    }
+
+    .toolbar__btn--toggle {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      width: auto;
+      padding: 0 8px;
+      font-size: 11px;
+      font-weight: 600;
+      border: 1px solid color-mix(in srgb, var(--vscode-editor-foreground) 12%, transparent);
+      border-radius: 4px;
+    }
+
+    .toolbar__btn--toggle svg {
+      width: 14px;
+      height: 14px;
     }
 
     .toolbar__btn svg {
@@ -332,6 +354,10 @@ function buildHtml(webview: vscode.Webview, lines: string[]): string {
 </head>
 <body>
   <div class="toolbar">
+    <button class="toolbar__btn toolbar__btn--toggle" id="tb-code" title="Switch to Code Editor">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M5.854 4.146a.5.5 0 0 1 0 .708L2.707 8l3.147 3.146a.5.5 0 0 1-.708.708l-3.5-3.5a.5.5 0 0 1 0-.708l3.5-3.5a.5.5 0 0 1 .708 0zM10.146 4.146a.5.5 0 0 1 .708 0l3.5 3.5a.5.5 0 0 1 0 .708l-3.5 3.5a.5.5 0 0 1-.708-.708L13.293 8l-3.147-3.146a.5.5 0 0 1 0-.708z"/></svg>
+      Code
+    </button>
     <span class="toolbar__label">Visual Editor</span>
     <span style="flex:1"></span>
     <button class="toolbar__btn" id="tb-bold" title="Bold (\\textbf)"><b>B</b></button>
@@ -656,6 +682,10 @@ function buildHtml(webview: vscode.Webview, lines: string[]): string {
     }, true);
 
     /* ── Toolbar ── */
+
+    document.getElementById("tb-code").addEventListener("click", () => {
+      vscode.postMessage({ type: "switchToCode" });
+    });
 
     function wrapSelection(before, after) {
       const sel = window.getSelection();

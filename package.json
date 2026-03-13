@@ -90,6 +90,12 @@
         "command": "viewerleaf.refreshOutline",
         "title": "Refresh Project Outline",
         "category": "ViewerLeaf"
+      },
+      {
+        "command": "viewerleaf.openVisualEditor",
+        "title": "Open Visual Editor",
+        "category": "ViewerLeaf",
+        "icon": "$(eye)"
       }
     ],
     "viewsContainers": {
@@ -125,6 +131,13 @@
       }
     ],
     "menus": {
+      "editor/title": [
+        {
+          "command": "viewerleaf.openVisualEditor",
+          "when": "resourceExtname == .tex && activeEditor != viewerleaf.visualEditor",
+          "group": "navigation"
+        }
+      ],
       "view/title": [
         {
           "command": "viewerleaf.refreshOutline",
