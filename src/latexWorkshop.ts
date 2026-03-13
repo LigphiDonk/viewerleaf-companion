@@ -52,6 +52,7 @@ export async function applyAcademicWorkspacePreset() {
   await config.update("latex-workshop.synctex.afterBuild.enabled", true, vscode.ConfigurationTarget.WorkspaceFolder);
   await config.update("latex-workshop.view.autoFocus.enabled", false, vscode.ConfigurationTarget.WorkspaceFolder);
   await config.update("latex-workshop.latex.autoBuild.run", "onSave", vscode.ConfigurationTarget.WorkspaceFolder);
+  await config.update("editor.wordWrap", "on", vscode.ConfigurationTarget.WorkspaceFolder);
 
   vscode.window.showInformationMessage("ViewerLeaf Academic Workspace 预设已写入当前工作区。");
 }
@@ -163,6 +164,7 @@ async function silentlyApplyAcademicWorkspacePreset(workspaceFolder: vscode.Work
     ["latex-workshop.synctex.afterBuild.enabled", true],
     ["latex-workshop.view.autoFocus.enabled", false],
     ["latex-workshop.latex.autoBuild.run", "onSave"],
+    ["editor.wordWrap", "on"],
   ] as const;
 
   for (const [key, value] of presetEntries) {

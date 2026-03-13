@@ -232,6 +232,8 @@ function buildHtml(webview: vscode.Webview, lines: string[]): string {
     .editor {
       display: flex;
       min-height: calc(100vh - 37px);
+      max-width: 100vw;
+      overflow-x: hidden;
     }
 
     .gutter {
@@ -269,6 +271,7 @@ function buildHtml(webview: vscode.Webview, lines: string[]): string {
       outline: none;
       white-space: pre-wrap;
       word-wrap: break-word;
+      overflow-wrap: anywhere;
       border-left: 2px solid transparent;
       transition: border-color 120ms ease;
     }
