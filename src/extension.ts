@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 
-import { applyAcademicWorkspacePreset, autoSyncTexToPdf, openAcademicWorkspace, revealPdf, syncTexToPdf } from "./latexWorkshop";
+import { applyAcademicWorkspacePreset, autoSyncTexToPdf, openAcademicWorkspace, revealPdf, suppressAutoBuildDuring, syncTexToPdf } from "./latexWorkshop";
 import { BUILTIN_SKILLS } from "./skills/catalog";
 import { DEFAULT_GLOBAL_SKILLS_PATH, loadAllSkills, watchSkillManifests } from "./skills/skillLoader";
 import { runSkill } from "./skills/skillRunner";
@@ -88,7 +88,9 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand("viewerleaf.openVisualEditor", async () => {
       const editor = vscode.window.activeTextEditor;
       if (editor && isTexDocument(editor.document)) {
-        await vscode.commands.executeCommand("vscode.openWith", editor.document.uri, VisualEditorProvider.viewType);
+        await suppressAutoBuildDuring(() =>
+          vscode.commands.executeCommand("vscode.openWith", editor.document.uri, VisualEditorProvider.viewType),
+        );
       }
     }),
     vscode.commands.registerCommand("viewerleaf.refreshOutline", () => void outlineProvider.refresh()),

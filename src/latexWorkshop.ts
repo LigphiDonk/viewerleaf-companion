@@ -51,6 +51,7 @@ export async function applyAcademicWorkspacePreset() {
   await config.update("latex-workshop.view.pdf.tab.editorGroup", "right", vscode.ConfigurationTarget.WorkspaceFolder);
   await config.update("latex-workshop.synctex.afterBuild.enabled", true, vscode.ConfigurationTarget.WorkspaceFolder);
   await config.update("latex-workshop.view.autoFocus.enabled", false, vscode.ConfigurationTarget.WorkspaceFolder);
+  await config.update("latex-workshop.latex.autoBuild.run", "onSave", vscode.ConfigurationTarget.WorkspaceFolder);
 
   vscode.window.showInformationMessage("ViewerLeaf Academic Workspace 预设已写入当前工作区。");
 }
@@ -92,6 +93,45 @@ export async function autoSyncTexToPdf(editor: vscode.TextEditor) {
   await vscode.commands.executeCommand("latex-workshop.synctex");
 }
 
+export async function suppressAutoBuildDuring(action: () => Thenable<unknown> | Promise<unknown>): Promise<void> {
+  if (!hasLatexWorkshop()) {
+    await action();
+    return;
+  }
+
+  const config = vscode.workspace.getConfiguration("latex-workshop.latex.autoBuild");
+  const currentValue = config.get<string>("run", "onFileChange");
+
+  if (currentValue === "never") {
+    await action();
+    return;
+  }
+
+  const inspected = config.inspect<string>("run");
+  let target: vscode.ConfigurationTarget;
+  let prevValue: string | undefined;
+
+  if (inspected?.workspaceFolderValue !== undefined) {
+    target = vscode.ConfigurationTarget.WorkspaceFolder;
+    prevValue = inspected.workspaceFolderValue;
+  } else if (inspected?.workspaceValue !== undefined) {
+    target = vscode.ConfigurationTarget.Workspace;
+    prevValue = inspected.workspaceValue;
+  } else {
+    target = vscode.ConfigurationTarget.Global;
+    prevValue = inspected?.globalValue;
+  }
+
+  await config.update("run", "never", target);
+  try {
+    await action();
+  } finally {
+    setTimeout(() => {
+      void config.update("run", prevValue, target);
+    }, 2000);
+  }
+}
+
 function delay(milliseconds: number) {
   return new Promise<void>((resolve) => {
     setTimeout(resolve, milliseconds);
@@ -122,6 +162,7 @@ async function silentlyApplyAcademicWorkspacePreset(workspaceFolder: vscode.Work
     ["latex-workshop.view.pdf.tab.editorGroup", "right"],
     ["latex-workshop.synctex.afterBuild.enabled", true],
     ["latex-workshop.view.autoFocus.enabled", false],
+    ["latex-workshop.latex.autoBuild.run", "onSave"],
   ] as const;
 
   for (const [key, value] of presetEntries) {
