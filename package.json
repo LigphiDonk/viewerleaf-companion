@@ -1,0 +1,153 @@
+{
+  "name": "viewerleaf-companion",
+  "displayName": "ViewerLeaf Companion",
+  "description": "A VS Code academic writing companion with Overleaf-style workspace orchestration, paper outline, and a playful academic skill arsenal.",
+  "version": "0.1.0",
+  "license": "MIT",
+  "publisher": "donkfeng",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/donkfeng/viewerleaf-companion.git"
+  },
+  "homepage": "https://github.com/donkfeng/viewerleaf-companion",
+  "bugs": {
+    "url": "https://github.com/donkfeng/viewerleaf-companion/issues"
+  },
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Other"
+  ],
+  "keywords": [
+    "latex",
+    "tex",
+    "academic",
+    "overleaf",
+    "writing",
+    "outline",
+    "synctex"
+  ],
+  "activationEvents": [
+    "onLanguage:latex",
+    "onLanguage:tex",
+    "onCommand:viewerleaf.openAcademicWorkspace",
+    "onView:viewerleafOutline",
+    "onView:viewerleafArsenal"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "viewerleaf.openAcademicWorkspace",
+        "title": "Open Academic Workspace",
+        "category": "ViewerLeaf"
+      },
+      {
+        "command": "viewerleaf.applyWorkspacePreset",
+        "title": "Apply Academic Workspace Preset",
+        "category": "ViewerLeaf"
+      },
+      {
+        "command": "viewerleaf.revealPdf",
+        "title": "Reveal PDF Preview",
+        "category": "ViewerLeaf"
+      },
+      {
+        "command": "viewerleaf.syncTexToPdf",
+        "title": "Sync TeX Cursor to PDF",
+        "category": "ViewerLeaf"
+      },
+      {
+        "command": "viewerleaf.showProjectOutline",
+        "title": "Show Project Outline",
+        "category": "ViewerLeaf"
+      },
+      {
+        "command": "viewerleaf.openArsenal",
+        "title": "Open Academic Arsenal",
+        "category": "ViewerLeaf"
+      },
+      {
+        "command": "viewerleaf.runSkill",
+        "title": "Run Academic Skill",
+        "category": "ViewerLeaf"
+      },
+      {
+        "command": "viewerleaf.refreshOutline",
+        "title": "Refresh Project Outline",
+        "category": "ViewerLeaf"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "viewerleaf",
+          "title": "ViewerLeaf",
+          "icon": "media/viewerleaf.svg"
+        }
+      ]
+    },
+    "views": {
+      "viewerleaf": [
+        {
+          "id": "viewerleafOutline",
+          "name": "Paper Outline"
+        },
+        {
+          "id": "viewerleafArsenal",
+          "name": "Academic Arsenal",
+          "type": "webview"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "viewerleaf.refreshOutline",
+          "when": "view == viewerleafOutline",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "ViewerLeaf Companion",
+      "properties": {
+        "viewerleaf.requireLatexWorkshop": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Require LaTeX Workshop for preview, build, and SyncTeX integration."
+        },
+        "viewerleaf.skillAnimations.enabled": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Enable animated weapon cards in the Academic Arsenal."
+        },
+        "viewerleaf.skillAnimations.intensity": {
+          "type": "string",
+          "default": "light",
+          "enum": ["light", "off"],
+          "markdownDescription": "Animation intensity for the Arsenal webview."
+        },
+        "viewerleaf.outline.mainTex": {
+          "type": "string",
+          "default": "auto",
+          "markdownDescription": "Main TeX entry file. Use `auto` to detect `main.tex` or the first document root."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsc -p .",
+    "check": "tsc -p . --noEmit",
+    "test": "vitest run",
+    "watch": "tsc -p . --watch"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@types/vscode": "^1.96.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

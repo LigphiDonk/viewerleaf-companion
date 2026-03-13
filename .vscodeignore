@@ -1,0 +1,8 @@
+.github/**
+src/**
+media/arsenal-preview.svg
+vitest.config.ts
+tsconfig.json
+README.md
+ROADMAP.md
+*.log

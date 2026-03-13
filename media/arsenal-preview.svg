@@ -1,0 +1,29 @@
+<svg width="1200" height="720" viewBox="0 0 1200 720" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="720" rx="28" fill="#F5F7FB"/>
+  <rect x="28" y="28" width="220" height="664" rx="24" fill="#FFFFFF" stroke="#E2E8F0"/>
+  <rect x="272" y="28" width="900" height="664" rx="24" fill="#FFFFFF" stroke="#E2E8F0"/>
+  <rect x="308" y="76" width="380" height="232" rx="28" fill="#F8FAFC" stroke="#DDE7F0"/>
+  <rect x="712" y="76" width="420" height="560" rx="28" fill="#FFFCF2" stroke="#F2E8CF"/>
+  <text x="328" y="118" fill="#0F172A" font-family="Arial" font-size="30" font-weight="700">Academic Arsenal</text>
+  <text x="328" y="154" fill="#475569" font-family="Arial" font-size="18">Cute 2D weapon cards for local academic workflows.</text>
+  <rect x="328" y="188" width="320" height="92" rx="22" fill="#CCFBF1"/>
+  <circle cx="390" cy="234" r="28" fill="#14B8A6"/>
+  <path d="M392 208L408 224L398 234L418 254L408 264L388 244L378 254L370 246L378 238L364 224L374 214L384 224L392 208Z" fill="white"/>
+  <text x="438" y="228" fill="#134E4A" font-family="Arial" font-size="26" font-weight="700">Outline Blade</text>
+  <text x="438" y="256" fill="#115E59" font-family="Arial" font-size="17">Insert section skeletons and reveal the paper outline.</text>
+  <rect x="744" y="104" width="356" height="120" rx="24" fill="#FEF3C7"/>
+  <rect x="744" y="246" width="356" height="120" rx="24" fill="#DBEAFE"/>
+  <rect x="744" y="388" width="356" height="120" rx="24" fill="#FCE7F3"/>
+  <rect x="744" y="530" width="356" height="78" rx="22" fill="#E2E8F0"/>
+  <text x="774" y="148" fill="#92400E" font-family="Arial" font-size="24" font-weight="700">Citation Bow</text>
+  <text x="774" y="290" fill="#1D4ED8" font-family="Arial" font-size="24" font-weight="700">Figure Hammer</text>
+  <text x="774" y="432" fill="#9D174D" font-family="Arial" font-size="24" font-weight="700">Review Shield</text>
+  <text x="774" y="575" fill="#334155" font-family="Arial" font-size="24" font-weight="700">Submission Spear</text>
+  <text x="64" y="88" fill="#0F172A" font-family="Arial" font-size="26" font-weight="700">Paper Outline</text>
+  <text x="64" y="138" fill="#0F172A" font-family="Arial" font-size="20">1  Introduction</text>
+  <text x="88" y="178" fill="#334155" font-family="Arial" font-size="18">1.1  Context</text>
+  <text x="88" y="214" fill="#334155" font-family="Arial" font-size="18">1.2  Contribution</text>
+  <text x="64" y="270" fill="#0F172A" font-family="Arial" font-size="20">2  Method</text>
+  <text x="88" y="310" fill="#334155" font-family="Arial" font-size="18">2.1  Pipeline</text>
+  <text x="88" y="346" fill="#334155" font-family="Arial" font-size="18">2.2  Features</text>
+</svg>
