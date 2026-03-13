@@ -146,7 +146,7 @@ function pixelGridToSvg(
     }
   }
 
-  return `<svg viewBox="0 0 96 96" aria-hidden="true" shape-rendering="crispEdges"><circle cx="48" cy="48" r="40" fill="${accent}" opacity="0.16" />${pixels.join("")}</svg>`;
+  return `<svg viewBox="0 0 96 96" aria-hidden="true" shape-rendering="crispEdges"><circle cx="48" cy="48" r="40" fill="${accent}" opacity="0.12" />${pixels.join("")}</svg>`;
 }
 
 function renderWeaponIcon(skill: AcademicSkill) {
@@ -158,24 +158,18 @@ function renderWeaponIcon(skill: AcademicSkill) {
   );
 }
 
-function renderSkillCard(skill: AcademicSkill, index: number, featured = false) {
-  const customBadge = skill.isCustom ? `<span class="weapon-card__badge">Custom</span>` : "";
+function renderWeaponItem(skill: AcademicSkill, index: number) {
+  const customDot = skill.isCustom ? `<span class="weapon-item__custom" title="Custom skill"></span>` : "";
 
   return `
-    <article class="weapon-card ${featured ? "weapon-card--featured" : ""}" style="--skill-primary:${skill.themeColors.primary};--skill-secondary:${skill.themeColors.secondary};--skill-accent:${skill.themeColors.accent};--delay-index:${index}">
-      <div class="weapon-card__header">
-        <div class="weapon-card__icon">${renderWeaponIcon(skill)}</div>
-        <div class="weapon-card__copy">
-          <div class="weapon-card__meta">${customBadge}<span class="weapon-card__type">${escapeHtml(skill.weaponType)}</span></div>
-          <div class="weapon-card__name">${escapeHtml(skill.name)}</div>
-        </div>
+    <button class="weapon-item" data-action="run-skill" data-skill-id="${escapeHtml(skill.id)}"
+            style="--delay:${index * 60}ms;--skill-accent:${skill.themeColors.accent};--skill-primary:${skill.themeColors.primary}">
+      <div class="weapon-item__icon">
+        ${renderWeaponIcon(skill)}
+        ${customDot}
       </div>
-      <p class="weapon-card__desc">${escapeHtml(skill.description)}</p>
-      <button class="weapon-card__action" data-action="run-skill" data-skill-id="${escapeHtml(skill.id)}">
-        ${escapeHtml(skill.actionLabel)}
-      </button>
-    </article>
-  `;
+      <span class="weapon-item__name">${escapeHtml(skill.name)}</span>
+    </button>`;
 }
 
 export class ArsenalViewProvider implements vscode.WebviewViewProvider {
@@ -229,11 +223,7 @@ export class ArsenalViewProvider implements vscode.WebviewViewProvider {
 
   private getHtml(webview: vscode.Webview) {
     const nonce = getNonce();
-    const animationsEnabled = vscode.workspace.getConfiguration("viewerleaf").get<boolean>("skillAnimations.enabled", true);
-    const animationIntensity = vscode.workspace.getConfiguration("viewerleaf").get<string>("skillAnimations.intensity", "light");
     const skills = this.getSkills().filter((skill) => skill.enabled);
-    const featured = skills[0];
-    const remaining = skills.slice(1);
 
     return `<!DOCTYPE html>
       <html lang="zh-CN">
@@ -242,280 +232,340 @@ export class ArsenalViewProvider implements vscode.WebviewViewProvider {
           <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}';" />
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
           <style>
-            :root {
-              color-scheme: light dark;
-              --paper-bg: color-mix(in srgb, var(--vscode-sideBar-background) 86%, #f8f5ee 14%);
-              --paper-ink: color-mix(in srgb, var(--vscode-foreground) 78%, #20150f 22%);
-              --paper-muted: color-mix(in srgb, var(--vscode-descriptionForeground) 84%, #6f6358 16%);
-              --panel-border: color-mix(in srgb, var(--vscode-editorWidget-border, #cfcbc1) 72%, #8d7d68 28%);
-            }
-            * { box-sizing: border-box; }
+            * { box-sizing: border-box; margin: 0; padding: 0; }
+
             body {
-              margin: 0;
-              color: var(--paper-ink);
-              font-family: "Avenir Next", "Segoe UI", sans-serif;
-              background:
-                radial-gradient(circle at top, rgba(244, 189, 102, 0.14), transparent 34%),
-                linear-gradient(180deg, color-mix(in srgb, var(--paper-bg) 92%, #fff8ea 8%), color-mix(in srgb, var(--paper-bg) 94%, #e8dcc6 6%));
+              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+              color: var(--vscode-foreground);
+              background: var(--vscode-sideBar-background);
             }
-            .arsenal-shell {
-              padding: 16px 14px 18px;
+
+            .sidebar {
+              padding: 20px 16px;
               display: flex;
               flex-direction: column;
-              gap: 14px;
+              gap: 20px;
             }
-            .arsenal-hero {
-              position: relative;
-              overflow: hidden;
-              padding: 18px 16px 16px;
-              border-radius: 20px;
-              border: 1px solid var(--panel-border);
-              background:
-                linear-gradient(180deg, rgba(255,255,255,0.92), rgba(249,243,229,0.98)),
-                repeating-linear-gradient(0deg, rgba(89, 63, 37, 0.02), rgba(89, 63, 37, 0.02) 1px, transparent 1px, transparent 6px);
-              box-shadow: 0 14px 34px rgba(43, 23, 8, 0.08);
-            }
-            .arsenal-hero::after {
-              content: "";
-              position: absolute;
-              inset: auto -34px -48px auto;
-              width: 140px;
-              height: 140px;
-              border-radius: 999px;
-              background: radial-gradient(circle, rgba(217, 119, 6, 0.18), transparent 68%);
-              pointer-events: none;
-            }
-            .arsenal-eyebrow {
-              display: inline-flex;
-              align-items: center;
-              gap: 6px;
-              font-size: 11px;
-              letter-spacing: 0.12em;
+
+            .brand {
+              font-size: 12px;
+              font-weight: 600;
+              letter-spacing: 0.04em;
               text-transform: uppercase;
-              color: var(--paper-muted);
-              font-weight: 800;
+              opacity: 0.4;
             }
-            .arsenal-eyebrow::before {
-              content: "";
-              width: 10px;
-              height: 10px;
-              background:
-                linear-gradient(90deg, #8b5cf6 50%, transparent 50%),
-                linear-gradient(180deg, #f59e0b 50%, transparent 50%);
-              background-size: 5px 5px;
-              border: 1px solid rgba(122, 89, 52, 0.28);
-              image-rendering: pixelated;
-            }
-            .arsenal-title {
-              margin: 10px 0 6px;
-              font-family: "Iowan Old Style", "Palatino Linotype", serif;
-              font-size: 29px;
-              line-height: 1.02;
-              letter-spacing: -0.02em;
-              color: #1f1b14;
-              font-weight: 700;
-            }
-            .arsenal-copy {
-              margin: 0;
-              max-width: 32ch;
-              font-size: 13px;
-              line-height: 1.68;
-              color: #4e4338;
-            }
-            .arsenal-hero__actions {
+
+            .actions {
               display: flex;
+              flex-direction: column;
               gap: 8px;
-              margin-top: 14px;
+            }
+
+            .action-btn {
+              width: 100%;
+              padding: 10px 14px;
+              border: 1px solid color-mix(in srgb, var(--vscode-foreground) 10%, transparent);
+              border-radius: 10px;
+              background: color-mix(in srgb, var(--vscode-foreground) 5%, transparent);
+              color: var(--vscode-foreground);
+              font-size: 13px;
+              font-weight: 500;
+              cursor: pointer;
+              transition: background 150ms ease, border-color 150ms ease;
+              text-align: center;
+            }
+
+            .action-btn:hover {
+              background: color-mix(in srgb, var(--vscode-foreground) 10%, transparent);
+              border-color: color-mix(in srgb, var(--vscode-foreground) 16%, transparent);
+            }
+
+            .action-btn--primary {
+              background: var(--vscode-button-background);
+              color: var(--vscode-button-foreground);
+              border-color: transparent;
+              font-weight: 600;
+            }
+
+            .action-btn--primary:hover {
+              background: var(--vscode-button-hoverBackground);
+              border-color: transparent;
+            }
+
+            .action-btn--arsenal {
+              font-weight: 600;
+              letter-spacing: 0.02em;
+            }
+
+            .divider {
+              height: 1px;
+              background: color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
+            }
+
+            .links {
+              display: flex;
+              gap: 16px;
               flex-wrap: wrap;
             }
-            .hero-btn {
-              border: 1px solid rgba(105, 77, 47, 0.2);
-              border-radius: 12px;
-              padding: 9px 12px;
-              background: rgba(255,255,255,0.84);
-              color: #3d2f22;
+
+            .link-btn {
+              background: none;
+              border: none;
+              color: color-mix(in srgb, var(--vscode-foreground) 45%, transparent);
               font-size: 12px;
-              font-weight: 800;
               cursor: pointer;
-              backdrop-filter: blur(8px);
+              padding: 0;
+              transition: color 150ms ease;
             }
-            .hero-btn--primary {
-              background: linear-gradient(180deg, #ef8f32, #c46710);
-              border-color: #a85712;
-              color: white;
-              box-shadow: 0 10px 18px rgba(186, 96, 18, 0.24);
+
+            .link-btn:hover {
+              color: var(--vscode-foreground);
             }
-            .arsenal-note {
-              padding: 11px 12px;
-              border-radius: 16px;
-              background: rgba(255,255,255,0.78);
-              border: 1px dashed rgba(117, 90, 61, 0.24);
-              font-size: 12px;
-              line-height: 1.6;
-              color: #5d5143;
-            }
-            .weapon-list {
-              display: flex;
-              flex-direction: column;
-              gap: 12px;
-            }
-            .weapon-card {
-              border-radius: 18px;
-              padding: 14px;
-              border: 1px solid color-mix(in srgb, var(--skill-primary) 18%, rgba(107, 82, 54, 0.18) 82%);
-              background:
-                linear-gradient(180deg, color-mix(in srgb, var(--skill-secondary) 88%, white 12%), rgba(255,255,255,0.98)),
-                repeating-linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.18) 1px, transparent 1px, transparent 4px);
-              box-shadow: 0 12px 26px rgba(36, 22, 8, 0.06);
-            }
-            .weapon-card--featured {
-              padding: 16px;
-              box-shadow: 0 18px 38px rgba(36, 22, 8, 0.1);
-            }
-            .weapon-card__header {
+
+            /* ── Overlay ── */
+
+            .overlay {
+              position: fixed;
+              inset: 0;
+              z-index: 100;
               display: flex;
               align-items: center;
-              gap: 12px;
+              justify-content: center;
             }
-            .weapon-card__icon {
-              width: 62px;
-              height: 62px;
-              flex: 0 0 auto;
-              border-radius: 18px;
+
+            .overlay[hidden] {
+              display: none;
+            }
+
+            .overlay__backdrop {
+              position: absolute;
+              inset: 0;
+              background: rgba(0, 0, 0, 0.45);
+              backdrop-filter: blur(6px);
+              -webkit-backdrop-filter: blur(6px);
+              animation: fadeIn 180ms ease;
+            }
+
+            .overlay__card {
+              position: relative;
+              width: calc(100% - 24px);
+              max-width: 300px;
+              background: var(--vscode-editor-background);
+              border: 1px solid color-mix(in srgb, var(--vscode-foreground) 12%, transparent);
+              border-radius: 16px;
+              padding: 20px;
+              box-shadow: 0 20px 48px rgba(0, 0, 0, 0.25);
+              animation: slideUp 280ms cubic-bezier(0.16, 1, 0.3, 1);
+            }
+
+            .overlay__header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 18px;
+            }
+
+            .overlay__title {
+              font-size: 15px;
+              font-weight: 700;
+              letter-spacing: -0.01em;
+            }
+
+            .overlay__close {
+              width: 28px;
+              height: 28px;
+              border: none;
+              border-radius: 8px;
+              background: color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
+              color: var(--vscode-foreground);
+              font-size: 16px;
+              line-height: 1;
+              cursor: pointer;
               display: grid;
               place-items: center;
-              background: linear-gradient(180deg, rgba(255,255,255,0.78), rgba(255,255,255,0.98));
-              border: 1px solid rgba(255,255,255,0.9);
-              box-shadow: inset 0 1px 0 rgba(255,255,255,0.82), 0 8px 18px rgba(31, 20, 9, 0.08);
+              transition: background 150ms ease;
             }
-            .weapon-card__icon svg {
-              width: 48px;
-              height: 48px;
+
+            .overlay__close:hover {
+              background: color-mix(in srgb, var(--vscode-foreground) 16%, transparent);
+            }
+
+            /* ── Weapon Grid ── */
+
+            .weapon-grid {
+              display: grid;
+              grid-template-columns: repeat(3, 1fr);
+              gap: 8px;
+              justify-items: center;
+            }
+
+            .weapon-item {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 8px;
+              width: 100%;
+              padding: 12px 4px;
+              border: 1px solid transparent;
+              border-radius: 12px;
+              background: transparent;
+              color: var(--vscode-foreground);
+              cursor: pointer;
+              transition: background 150ms ease, border-color 150ms ease;
+              animation: itemEnter 280ms ease both;
+              animation-delay: var(--delay);
+            }
+
+            .weapon-item:hover {
+              background: color-mix(in srgb, var(--skill-accent) 10%, transparent);
+              border-color: color-mix(in srgb, var(--skill-accent) 18%, transparent);
+            }
+
+            .weapon-item__icon {
+              position: relative;
+              width: 52px;
+              height: 52px;
+              border-radius: 14px;
+              display: grid;
+              place-items: center;
+              background: color-mix(in srgb, var(--skill-accent) 8%, var(--vscode-editor-background));
+              border: 1px solid color-mix(in srgb, var(--skill-accent) 12%, transparent);
+              transition: border-color 150ms ease;
+            }
+
+            .weapon-item:hover .weapon-item__icon {
+              animation: bounce 500ms ease;
+              border-color: color-mix(in srgb, var(--skill-accent) 30%, transparent);
+            }
+
+            .weapon-item__icon svg {
+              width: 36px;
+              height: 36px;
               display: block;
             }
-            .weapon-card__copy {
-              min-width: 0;
-              flex: 1;
+
+            .weapon-item__custom {
+              position: absolute;
+              top: -2px;
+              right: -2px;
+              width: 8px;
+              height: 8px;
+              border-radius: 50%;
+              background: var(--skill-accent);
+              border: 2px solid var(--vscode-editor-background);
             }
-            .weapon-card__meta {
-              display: flex;
-              align-items: center;
-              gap: 6px;
-              margin-bottom: 3px;
-              flex-wrap: wrap;
+
+            .weapon-item__name {
+              font-size: 11px;
+              font-weight: 600;
+              text-align: center;
+              opacity: 0.7;
+              line-height: 1.2;
             }
-            .weapon-card__badge,
-            .weapon-card__type {
-              display: inline-flex;
-              align-items: center;
-              min-height: 20px;
-              padding: 0 7px;
-              border-radius: 999px;
-              font-size: 10px;
-              line-height: 1;
-              text-transform: uppercase;
-              letter-spacing: 0.1em;
-              font-weight: 800;
+
+            .weapon-item:hover .weapon-item__name {
+              opacity: 1;
             }
-            .weapon-card__badge {
-              background: color-mix(in srgb, var(--skill-accent) 20%, white 80%);
-              color: color-mix(in srgb, var(--skill-primary) 78%, #62452a 22%);
+
+            /* ── Animations ── */
+
+            @keyframes fadeIn {
+              from { opacity: 0; }
+              to { opacity: 1; }
             }
-            .weapon-card__type {
-              background: rgba(255,255,255,0.68);
-              color: color-mix(in srgb, var(--skill-primary) 74%, #564537 26%);
+
+            @keyframes slideUp {
+              from { opacity: 0; transform: translateY(16px) scale(0.95); }
+              to { opacity: 1; transform: translateY(0) scale(1); }
             }
-            .weapon-card__name {
-              font-size: 16px;
-              font-weight: 800;
-              color: #16120d;
+
+            @keyframes itemEnter {
+              from { opacity: 0; transform: scale(0.8); }
+              to { opacity: 1; transform: scale(1); }
             }
-            .weapon-card__desc {
-              margin: 12px 0 14px;
-              font-size: 12.5px;
-              line-height: 1.65;
-              color: #40362c;
+
+            @keyframes bounce {
+              0% { transform: translateY(0) scale(1); }
+              20% { transform: translateY(-14px) scale(1.1); }
+              40% { transform: translateY(-2px) scale(1); }
+              60% { transform: translateY(-8px) scale(1.04); }
+              80% { transform: translateY(-1px) scale(1); }
+              100% { transform: translateY(0) scale(1); }
             }
-            .weapon-card__action {
-              width: 100%;
-              border: none;
-              border-radius: 12px;
-              padding: 10px 12px;
-              background: linear-gradient(180deg, color-mix(in srgb, var(--skill-accent) 82%, white 18%), var(--skill-primary));
-              color: white;
-              font-size: 12px;
-              font-weight: 800;
-              cursor: pointer;
-              box-shadow: 0 10px 20px color-mix(in srgb, var(--skill-primary) 28%, transparent);
-            }
-            .weapon-card__action:hover,
-            .hero-btn:hover {
-              filter: brightness(1.03);
-            }
-            ${animationsEnabled && animationIntensity === "light" ? `
-              .weapon-card {
-                animation: enter 240ms ease-out both;
-                animation-delay: calc(var(--delay-index) * 70ms);
-              }
-              .weapon-card__icon {
-                animation: float 3.8s ease-in-out infinite;
-                animation-delay: calc(var(--delay-index) * 140ms);
-              }
-              @keyframes enter {
-                from { opacity: 0; transform: translateY(8px); }
-                to { opacity: 1; transform: translateY(0); }
-              }
-              @keyframes float {
-                0%, 100% { transform: translateY(0); }
-                50% { transform: translateY(-4px); }
-              }
-            ` : ""}
-            @media (max-width: 420px) {
-              .arsenal-title {
-                font-size: 26px;
-              }
-              .arsenal-copy {
-                max-width: none;
-              }
-            }
+
             @media (prefers-reduced-motion: reduce) {
-              .weapon-card,
-              .weapon-card__icon {
-                animation: none !important;
+              *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
               }
             }
           </style>
         </head>
         <body>
-          <main class="arsenal-shell">
-            <section class="arsenal-hero">
-              <div class="arsenal-eyebrow">ViewerLeaf Companion</div>
-              <h1 class="arsenal-title">Academic Arsenal</h1>
-              <p class="arsenal-copy">把本地论文 workflow 压成几件能反复挥出的工具。现在内置武器和自定义技能共用一套装填逻辑，动作会直接落到编辑器、命令或 Claude Code 终端里。</p>
-              <div class="arsenal-hero__actions">
-                <button class="hero-btn hero-btn--primary" data-action="open-workspace">Open Workspace</button>
-                <button class="hero-btn" data-action="open-rich-preview">Rich Preview</button>
-                <button class="hero-btn" data-action="show-outline">Project Outline</button>
-                <button class="hero-btn" data-action="install-latex-workshop">LaTeX Workshop</button>
-              </div>
-            </section>
-            <div class="arsenal-note">PDF 预览、编译和 SyncTeX 依赖 LaTeX Workshop。自定义技能可从工作区根目录的 <code>.viewerleaf-skills.json</code> 或全局清单导入，并支持把 prompt 预填到 Claude Code 终端。</div>
-            <div class="weapon-list">
-              ${featured ? renderSkillCard(featured, 0, true) : ""}
-              ${remaining.map((skill, index) => renderSkillCard(skill, index + 1)).join("")}
+          <main class="sidebar">
+            <span class="brand">ViewerLeaf</span>
+
+            <div class="actions">
+              <button class="action-btn action-btn--primary" data-action="open-workspace">Open Workspace</button>
+              <button class="action-btn action-btn--arsenal" id="arsenal-trigger">\u2694 Arsenal</button>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="links">
+              <button class="link-btn" data-action="show-outline">Outline</button>
+              <button class="link-btn" data-action="open-rich-preview">Preview</button>
+              <button class="link-btn" data-action="install-latex-workshop">LaTeX Workshop</button>
             </div>
           </main>
+
+          <div class="overlay" id="arsenal-overlay" hidden>
+            <div class="overlay__backdrop" id="overlay-backdrop"></div>
+            <div class="overlay__card">
+              <div class="overlay__header">
+                <span class="overlay__title">Arsenal</span>
+                <button class="overlay__close" id="arsenal-close">\u00d7</button>
+              </div>
+              <div class="weapon-grid">
+                ${skills.map((skill, index) => renderWeaponItem(skill, index)).join("")}
+              </div>
+            </div>
+          </div>
+
           <script nonce="${nonce}">
             const vscode = acquireVsCodeApi();
-            document.querySelectorAll("[data-action]").forEach((element) => {
-              element.addEventListener("click", () => {
-                const action = element.getAttribute("data-action");
-                const skillId = element.getAttribute("data-skill-id");
+            const overlay = document.getElementById("arsenal-overlay");
+
+            document.getElementById("arsenal-trigger").addEventListener("click", () => {
+              overlay.hidden = false;
+            });
+
+            function closeArsenal() {
+              overlay.hidden = true;
+            }
+
+            document.getElementById("arsenal-close").addEventListener("click", closeArsenal);
+            document.getElementById("overlay-backdrop").addEventListener("click", closeArsenal);
+
+            document.addEventListener("keydown", (e) => {
+              if (e.key === "Escape" && !overlay.hidden) {
+                closeArsenal();
+              }
+            });
+
+            document.querySelectorAll("[data-action]").forEach((el) => {
+              el.addEventListener("click", () => {
+                const action = el.getAttribute("data-action");
+                const skillId = el.getAttribute("data-skill-id");
                 if (action === "run-skill" && skillId) {
                   vscode.postMessage({ type: "run-skill", skillId });
+                  closeArsenal();
                   return;
                 }
-                vscode.postMessage({ type: action });
+                if (action) {
+                  vscode.postMessage({ type: action });
+                }
               });
             });
           </script>

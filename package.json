@@ -131,18 +131,7 @@
           "default": true,
           "markdownDescription": "Require LaTeX Workshop for preview, build, and SyncTeX integration."
         },
-        "viewerleaf.skillAnimations.enabled": {
-          "type": "boolean",
-          "default": true,
-          "markdownDescription": "Enable animated weapon cards in the Academic Arsenal."
-        },
-        "viewerleaf.skillAnimations.intensity": {
-          "type": "string",
-          "default": "light",
-          "enum": ["light", "off"],
-          "markdownDescription": "Animation intensity for the Arsenal webview."
-        },
-        "viewerleaf.syncTexOnClick": {
+"viewerleaf.syncTexOnClick": {
           "type": "boolean",
           "default": true,
           "markdownDescription": "Run SyncTeX to PDF automatically when a LaTeX editor selection changes via mouse click."
