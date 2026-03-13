@@ -83,6 +83,64 @@ export async function syncTexToPdf() {
   await vscode.commands.executeCommand("latex-workshop.synctex");
 }
 
+export async function autoSyncTexToPdf(editor: vscode.TextEditor) {
+  const enabled = vscode.workspace.getConfiguration("viewerleaf").get("syncTexOnClick", true);
+  if (!enabled || !hasLatexWorkshop() || !isTexDocument(editor.document)) {
+    return;
+  }
+
+  await vscode.commands.executeCommand("latex-workshop.synctex");
+}
+
+function delay(milliseconds: number) {
+  return new Promise<void>((resolve) => {
+    setTimeout(resolve, milliseconds);
+  });
+}
+
+async function hasCompiledPdf(editor: vscode.TextEditor) {
+  const pdfUri = editor.document.uri.with({
+    path: editor.document.uri.path.replace(/\.tex$/i, ".pdf"),
+  });
+
+  if (pdfUri.path === editor.document.uri.path) {
+    return false;
+  }
+
+  try {
+    await vscode.workspace.fs.stat(pdfUri);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function silentlyApplyAcademicWorkspacePreset(workspaceFolder: vscode.WorkspaceFolder) {
+  const config = vscode.workspace.getConfiguration(undefined, workspaceFolder.uri);
+  const presetEntries = [
+    ["latex-workshop.view.pdf.viewer", "tab"],
+    ["latex-workshop.view.pdf.tab.editorGroup", "right"],
+    ["latex-workshop.synctex.afterBuild.enabled", true],
+    ["latex-workshop.view.autoFocus.enabled", false],
+  ] as const;
+
+  for (const [key, value] of presetEntries) {
+    const inspected = config.inspect(key);
+    const hasExplicitValue = Boolean(
+      inspected?.globalValue !== undefined
+      || inspected?.workspaceValue !== undefined
+      || inspected?.workspaceFolderValue !== undefined
+      || inspected?.globalLanguageValue !== undefined
+      || inspected?.workspaceLanguageValue !== undefined
+      || inspected?.workspaceFolderLanguageValue !== undefined,
+    );
+
+    if (!hasExplicitValue) {
+      await config.update(key, value, vscode.ConfigurationTarget.WorkspaceFolder);
+    }
+  }
+}
+
 export async function openAcademicWorkspace() {
   const editor = await ensureActiveTexEditor();
   if (!editor) {
@@ -95,7 +153,13 @@ export async function openAcademicWorkspace() {
       title: "Opening ViewerLeaf Academic Workspace",
     },
     async () => {
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(editor.document.uri);
+      if (workspaceFolder) {
+        await silentlyApplyAcademicWorkspacePreset(workspaceFolder);
+      }
+
       await vscode.commands.executeCommand("workbench.action.editorLayoutTwoColumns");
+      await delay(300);
       await vscode.window.showTextDocument(editor.document, {
         preview: false,
         preserveFocus: true,
@@ -105,19 +169,26 @@ export async function openAcademicWorkspace() {
       await focusViewCommand("viewerleafOutline.focus");
 
       if (await ensureLatexWorkshopInstalled("Academic Workspace")) {
-        try {
-          await vscode.commands.executeCommand("latex-workshop.build");
-        } catch {
-          // keep going even if build fails; preview may still exist
+        const pdfExists = await hasCompiledPdf(editor);
+        if (!pdfExists) {
+          try {
+            await vscode.commands.executeCommand("latex-workshop.build");
+          } catch {
+            // keep going even if build fails; preview may still exist
+          }
         }
 
-        try {
-          await vscode.commands.executeCommand("workbench.action.focusSecondEditorGroup");
-        } catch {
-          // ignore
+        const autoOpenPdf = vscode.workspace.getConfiguration("viewerleaf").get("workspace.autoOpenPdf", false);
+        if (autoOpenPdf) {
+          try {
+            await vscode.commands.executeCommand("workbench.action.focusSecondEditorGroup");
+          } catch {
+            // ignore
+          }
+
+          await vscode.commands.executeCommand("latex-workshop.view");
         }
 
-        await vscode.commands.executeCommand("latex-workshop.view");
         await vscode.commands.executeCommand("workbench.action.focusFirstEditorGroup");
       }
     },

@@ -1,6 +1,9 @@
 import * as vscode from "vscode";
+import * as path from "node:path";
 
-import { ACADEMIC_SKILLS } from "./catalog";
+import { BUILTIN_SKILLS } from "./catalog";
+import { sendToClaudeCode } from "./claudeCodeBridge";
+import type { AcademicSkill } from "../types";
 import { isTexDocument } from "../workspace";
 
 function markdownDocumentTitle(title: string, body: string) {
@@ -51,9 +54,21 @@ async function openFirstBibliographyFile() {
   return true;
 }
 
-export async function runSkill(skillId?: string) {
-  const resolvedSkillId = skillId ?? await pickSkillId();
+export async function runSkill(skillId: string | undefined, skills: AcademicSkill[]): Promise<void>;
+export async function runSkill(skillId?: string, skills: AcademicSkill[] = BUILTIN_SKILLS) {
+  const resolvedSkillId = skillId ?? await pickSkillId(skills);
   if (!resolvedSkillId) {
+    return;
+  }
+
+  const skill = skills.find((item) => item.id === resolvedSkillId);
+  if (!skill) {
+    vscode.window.showWarningMessage(`未知 skill: ${resolvedSkillId}`);
+    return;
+  }
+
+  if (skill.action) {
+    await runCustomSkillAction(skill);
     return;
   }
 
@@ -78,9 +93,9 @@ export async function runSkill(skillId?: string) {
   }
 }
 
-async function pickSkillId() {
+async function pickSkillId(skills: AcademicSkill[]) {
   const picked = await vscode.window.showQuickPick(
-    ACADEMIC_SKILLS.filter((skill) => skill.enabled).map((skill) => ({
+    skills.filter((skill) => skill.enabled).map((skill) => ({
       label: skill.name,
       description: skill.description,
       skillId: skill.id,
@@ -91,6 +106,66 @@ async function pickSkillId() {
   );
 
   return picked?.skillId;
+}
+
+function buildPromptContext() {
+  const editor = vscode.window.activeTextEditor;
+  const document = editor?.document;
+  const workspaceFolder = document ? vscode.workspace.getWorkspaceFolder(document.uri) : undefined;
+
+  return {
+    fileName: document ? path.basename(document.uri.fsPath) : undefined,
+    filePath: document?.uri.fsPath,
+    selection: editor && document && !editor.selection.isEmpty ? document.getText(editor.selection) : "",
+    workspaceName: workspaceFolder?.name,
+    lineNumber: editor ? editor.selection.active.line + 1 : undefined,
+  };
+}
+
+export async function runCustomSkillAction(skill: AcademicSkill) {
+  if (!skill.action) {
+    vscode.window.showWarningMessage(`Skill ${skill.name} 没有可执行 action。`);
+    return;
+  }
+
+  switch (skill.action.type) {
+    case "snippet":
+      if (!skill.action.snippet) {
+        vscode.window.showWarningMessage(`Skill ${skill.name} 的 snippet action 缺少内容。`);
+        return;
+      }
+      await insertSnippet(skill.action.snippet);
+      return;
+    case "checklist":
+      if (!skill.action.checklist) {
+        vscode.window.showWarningMessage(`Skill ${skill.name} 的 checklist action 缺少内容。`);
+        return;
+      }
+      await openChecklist(skill.name, skill.action.checklist);
+      return;
+    case "command":
+      if (!skill.action.command) {
+        vscode.window.showWarningMessage(`Skill ${skill.name} 的 command action 缺少命令 ID。`);
+        return;
+      }
+
+      try {
+        await vscode.commands.executeCommand(skill.action.command);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        vscode.window.showWarningMessage(`Skill ${skill.name} 执行命令失败: ${message}`);
+      }
+      return;
+    case "claudeCode":
+      if (!skill.action.prompt) {
+        vscode.window.showWarningMessage(`Skill ${skill.name} 的 claudeCode action 缺少 prompt。`);
+        return;
+      }
+      await sendToClaudeCode(skill.action.prompt, buildPromptContext());
+      return;
+    default:
+      vscode.window.showWarningMessage(`Skill ${skill.name} 使用了不支持的 action 类型。`);
+  }
 }
 
 async function runOutlineBlade() {

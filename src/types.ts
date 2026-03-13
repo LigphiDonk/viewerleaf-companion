@@ -30,6 +30,16 @@ export interface OutlineBuildResult {
 
 export type WeaponType = "blade" | "bow" | "hammer" | "shield" | "spear";
 
+export type SkillActionType = "snippet" | "checklist" | "command" | "claudeCode";
+
+export interface SkillAction {
+  type: SkillActionType;
+  snippet?: string;
+  checklist?: string;
+  command?: string;
+  prompt?: string;
+}
+
 export interface AcademicSkill {
   id: string;
   name: string;
@@ -42,4 +52,6 @@ export interface AcademicSkill {
     accent: string;
   };
   enabled: boolean;
+  action?: SkillAction;
+  isCustom?: boolean;
 }

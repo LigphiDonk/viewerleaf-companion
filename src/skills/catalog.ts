@@ -1,6 +1,6 @@
 import type { AcademicSkill } from "../types";
 
-export const ACADEMIC_SKILLS: AcademicSkill[] = [
+export const BUILTIN_SKILLS: AcademicSkill[] = [
   {
     id: "outline-blade",
     name: "Outline Blade",
@@ -67,3 +67,5 @@ export const ACADEMIC_SKILLS: AcademicSkill[] = [
     enabled: true,
   },
 ];
+
+export const ACADEMIC_SKILLS = BUILTIN_SKILLS;

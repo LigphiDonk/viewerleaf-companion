@@ -33,6 +33,8 @@
     "onLanguage:latex",
     "onLanguage:tex",
     "onCommand:viewerleaf.openAcademicWorkspace",
+    "onCommand:viewerleaf.openRichPreview",
+    "onCommand:viewerleaf.reloadSkills",
     "onView:viewerleafOutline",
     "onView:viewerleafArsenal"
   ],
@@ -72,6 +74,16 @@
       {
         "command": "viewerleaf.runSkill",
         "title": "Run Academic Skill",
+        "category": "ViewerLeaf"
+      },
+      {
+        "command": "viewerleaf.reloadSkills",
+        "title": "Reload Academic Skills",
+        "category": "ViewerLeaf"
+      },
+      {
+        "command": "viewerleaf.openRichPreview",
+        "title": "Open Rich Preview",
         "category": "ViewerLeaf"
       },
       {
@@ -129,6 +141,26 @@
           "default": "light",
           "enum": ["light", "off"],
           "markdownDescription": "Animation intensity for the Arsenal webview."
+        },
+        "viewerleaf.syncTexOnClick": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Run SyncTeX to PDF automatically when a LaTeX editor selection changes via mouse click."
+        },
+        "viewerleaf.workspace.autoOpenPdf": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Automatically open the PDF preview when opening the ViewerLeaf academic workspace."
+        },
+        "viewerleaf.skills.enableCustomSkills": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Enable loading custom skills from workspace and global ViewerLeaf skill manifests."
+        },
+        "viewerleaf.skills.globalManifestPath": {
+          "type": "string",
+          "default": "~/.viewerleaf/skills.json",
+          "markdownDescription": "Path to the global ViewerLeaf skill manifest JSON file."
         },
         "viewerleaf.outline.mainTex": {
           "type": "string",

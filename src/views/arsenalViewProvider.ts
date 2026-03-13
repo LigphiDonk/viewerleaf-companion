@@ -1,13 +1,108 @@
 import * as vscode from "vscode";
 
-import { ACADEMIC_SKILLS } from "../skills/catalog";
 import type { AcademicSkill, WeaponType } from "../types";
 
 type ArsenalMessage =
   | { type: "run-skill"; skillId: string }
   | { type: "open-workspace" }
   | { type: "show-outline" }
+  | { type: "open-rich-preview" }
   | { type: "install-latex-workshop" };
+
+const PIXEL_SIZE = 6;
+
+const WEAPON_PIXEL_GRIDS: Record<WeaponType, number[][]> = {
+  blade: toPixelGrid([
+    "0000000000000000",
+    "0000000000000020",
+    "0000000000000220",
+    "0000000000002210",
+    "0000000000022100",
+    "0000000000221000",
+    "0000000002210000",
+    "0000000022100000",
+    "0000000222100000",
+    "0000000011100000",
+    "0000000001110000",
+    "0000000033310000",
+    "0000000033300000",
+    "0000000333000000",
+    "0000000030000000",
+    "0000000000000000",
+  ]),
+  bow: toPixelGrid([
+    "0000000000000000",
+    "0000100000000000",
+    "0001100000000000",
+    "0011000000000000",
+    "0011000000002000",
+    "0010000000022200",
+    "0110000002221230",
+    "0110001111111110",
+    "0110000002221230",
+    "0010000000022200",
+    "0011000000002000",
+    "0011000000000000",
+    "0001100000000000",
+    "0000100000000000",
+    "0000000000000000",
+    "0000000000000000",
+  ]),
+  hammer: toPixelGrid([
+    "0000000000000000",
+    "0000111111220000",
+    "0001111122222000",
+    "0001111122222000",
+    "0000111111222000",
+    "0000000011000000",
+    "0000000011000000",
+    "0000000011000000",
+    "0000000011000000",
+    "0000000001100000",
+    "0000000001100000",
+    "0000000000110000",
+    "0000000000110000",
+    "0000000000033000",
+    "0000000000033000",
+    "0000000000000000",
+  ]),
+  shield: toPixelGrid([
+    "0000000000000000",
+    "0000001111000000",
+    "0000011221100000",
+    "0000112222110000",
+    "0001122232211000",
+    "0001122132211000",
+    "0001121332211000",
+    "0000112332110000",
+    "0000112332110000",
+    "0000012332100000",
+    "0000012332100000",
+    "0000001231000000",
+    "0000001231000000",
+    "0000000300000000",
+    "0000000000000000",
+    "0000000000000000",
+  ]),
+  spear: toPixelGrid([
+    "0000000000000000",
+    "0000000000002000",
+    "0000000000022200",
+    "0000000000223220",
+    "0000000000022200",
+    "0000000000001000",
+    "0000000000001000",
+    "0000000000001000",
+    "0000000000001000",
+    "0000000000001000",
+    "0000000000001000",
+    "0000000000001000",
+    "0000000000001000",
+    "0000000000003000",
+    "0000000000033000",
+    "0000000000000000",
+  ]),
+};
 
 function getNonce() {
   const alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -18,82 +113,92 @@ function getNonce() {
   return text;
 }
 
-function renderWeaponIcon(weaponType: WeaponType, primary: string, accent: string) {
-  switch (weaponType) {
-    case "blade":
-      return `
-        <svg viewBox="0 0 96 96" aria-hidden="true">
-          <circle cx="48" cy="48" r="40" fill="${accent}" opacity="0.12" />
-          <path d="M51 16L62 30L52 40L70 58L60 68L42 50L32 60L24 52L34 42L20 28L30 18L40 28L51 16Z" fill="${primary}" />
-        </svg>
-      `;
-    case "bow":
-      return `
-        <svg viewBox="0 0 96 96" aria-hidden="true">
-          <circle cx="48" cy="48" r="40" fill="${accent}" opacity="0.12" />
-          <path d="M28 72C56 60 60 36 52 18" stroke="${primary}" stroke-width="7" stroke-linecap="round" />
-          <path d="M28 72C44 50 46 36 40 22" stroke="${primary}" stroke-width="7" stroke-linecap="round" opacity="0.42" />
-          <path d="M26 28L68 66" stroke="${primary}" stroke-width="4" stroke-linecap="round" />
-          <path d="M62 60L76 62L72 76" fill="none" stroke="${primary}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
-      `;
-    case "hammer":
-      return `
-        <svg viewBox="0 0 96 96" aria-hidden="true">
-          <circle cx="48" cy="48" r="40" fill="${accent}" opacity="0.12" />
-          <rect x="22" y="24" width="34" height="18" rx="6" fill="${primary}" />
-          <path d="M46 40L70 64" stroke="${primary}" stroke-width="8" stroke-linecap="round" />
-          <path d="M64 58L76 70" stroke="${accent}" stroke-width="10" stroke-linecap="round" />
-        </svg>
-      `;
-    case "shield":
-      return `
-        <svg viewBox="0 0 96 96" aria-hidden="true">
-          <circle cx="48" cy="48" r="40" fill="${accent}" opacity="0.12" />
-          <path d="M48 18L72 28V46C72 61 61 74 48 80C35 74 24 61 24 46V28L48 18Z" fill="${primary}" />
-          <path d="M48 28V68" stroke="white" stroke-width="5" stroke-linecap="round" />
-          <path d="M33 46H63" stroke="white" stroke-width="5" stroke-linecap="round" />
-        </svg>
-      `;
-    case "spear":
-      return `
-        <svg viewBox="0 0 96 96" aria-hidden="true">
-          <circle cx="48" cy="48" r="40" fill="${accent}" opacity="0.12" />
-          <path d="M26 72L66 32" stroke="${primary}" stroke-width="7" stroke-linecap="round" />
-          <path d="M62 18L78 22L74 38L58 34L62 18Z" fill="${primary}" />
-        </svg>
-      `;
-  }
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll("\"", "&quot;")
+    .replaceAll("'", "&#39;");
 }
 
-function renderSkillCard(skill: AcademicSkill, featured = false) {
+function toPixelGrid(rows: string[]) {
+  return rows.map((row) => row.split("").map((cell) => Number(cell)));
+}
+
+function pixelGridToSvg(
+  grid: number[][],
+  primary: string,
+  accent: string,
+  highlight: string,
+) {
+  const pixels: string[] = [];
+  for (const [rowIndex, row] of grid.entries()) {
+    for (const [columnIndex, cell] of row.entries()) {
+      if (cell === 0) {
+        continue;
+      }
+
+      const fill = cell === 1 ? primary : cell === 2 ? accent : highlight;
+      pixels.push(
+        `<rect x="${columnIndex * PIXEL_SIZE}" y="${rowIndex * PIXEL_SIZE}" width="${PIXEL_SIZE}" height="${PIXEL_SIZE}" fill="${fill}" />`,
+      );
+    }
+  }
+
+  return `<svg viewBox="0 0 96 96" aria-hidden="true" shape-rendering="crispEdges"><circle cx="48" cy="48" r="40" fill="${accent}" opacity="0.16" />${pixels.join("")}</svg>`;
+}
+
+function renderWeaponIcon(skill: AcademicSkill) {
+  return pixelGridToSvg(
+    WEAPON_PIXEL_GRIDS[skill.weaponType],
+    skill.themeColors.primary,
+    skill.themeColors.accent,
+    skill.themeColors.secondary,
+  );
+}
+
+function renderSkillCard(skill: AcademicSkill, index: number, featured = false) {
+  const customBadge = skill.isCustom ? `<span class="weapon-card__badge">Custom</span>` : "";
+
   return `
-    <article class="weapon-card ${featured ? "weapon-card--featured" : ""}" style="--skill-primary:${skill.themeColors.primary};--skill-secondary:${skill.themeColors.secondary};--skill-accent:${skill.themeColors.accent}">
+    <article class="weapon-card ${featured ? "weapon-card--featured" : ""}" style="--skill-primary:${skill.themeColors.primary};--skill-secondary:${skill.themeColors.secondary};--skill-accent:${skill.themeColors.accent};--delay-index:${index}">
       <div class="weapon-card__header">
-        <div class="weapon-card__icon">${renderWeaponIcon(skill.weaponType, skill.themeColors.primary, skill.themeColors.accent)}</div>
+        <div class="weapon-card__icon">${renderWeaponIcon(skill)}</div>
         <div class="weapon-card__copy">
-          <div class="weapon-card__name">${skill.name}</div>
-          <div class="weapon-card__type">${skill.weaponType}</div>
+          <div class="weapon-card__meta">${customBadge}<span class="weapon-card__type">${escapeHtml(skill.weaponType)}</span></div>
+          <div class="weapon-card__name">${escapeHtml(skill.name)}</div>
         </div>
       </div>
-      <p class="weapon-card__desc">${skill.description}</p>
-      <button class="weapon-card__action" data-action="run-skill" data-skill-id="${skill.id}">
-        ${skill.actionLabel}
+      <p class="weapon-card__desc">${escapeHtml(skill.description)}</p>
+      <button class="weapon-card__action" data-action="run-skill" data-skill-id="${escapeHtml(skill.id)}">
+        ${escapeHtml(skill.actionLabel)}
       </button>
     </article>
   `;
 }
 
 export class ArsenalViewProvider implements vscode.WebviewViewProvider {
-  constructor(private readonly extensionUri: vscode.Uri) {}
+  private view?: vscode.WebviewView;
+
+  constructor(
+    private readonly extensionUri: vscode.Uri,
+    private readonly getSkills: () => AcademicSkill[],
+  ) {}
 
   resolveWebviewView(webviewView: vscode.WebviewView) {
+    this.view = webviewView;
     webviewView.webview.options = {
       enableScripts: true,
       localResourceRoots: [this.extensionUri],
     };
 
     webviewView.webview.html = this.getHtml(webviewView.webview);
+    webviewView.onDidDispose(() => {
+      if (this.view === webviewView) {
+        this.view = undefined;
+      }
+    });
     webviewView.webview.onDidReceiveMessage(async (message: ArsenalMessage) => {
       switch (message.type) {
         case "run-skill":
@@ -105,18 +210,30 @@ export class ArsenalViewProvider implements vscode.WebviewViewProvider {
         case "show-outline":
           await vscode.commands.executeCommand("viewerleaf.showProjectOutline");
           return;
+        case "open-rich-preview":
+          await vscode.commands.executeCommand("viewerleaf.openRichPreview");
+          return;
         case "install-latex-workshop":
           await vscode.commands.executeCommand("workbench.extensions.search", "@id:James-Yu.latex-workshop");
       }
     });
   }
 
+  refreshSkills() {
+    if (!this.view) {
+      return;
+    }
+
+    this.view.webview.html = this.getHtml(this.view.webview);
+  }
+
   private getHtml(webview: vscode.Webview) {
     const nonce = getNonce();
     const animationsEnabled = vscode.workspace.getConfiguration("viewerleaf").get<boolean>("skillAnimations.enabled", true);
     const animationIntensity = vscode.workspace.getConfiguration("viewerleaf").get<string>("skillAnimations.intensity", "light");
-    const featured = ACADEMIC_SKILLS[0];
-    const remaining = ACADEMIC_SKILLS.slice(1);
+    const skills = this.getSkills().filter((skill) => skill.enabled);
+    const featured = skills[0];
+    const remaining = skills.slice(1);
 
     return `<!DOCTYPE html>
       <html lang="zh-CN">
@@ -127,15 +244,19 @@ export class ArsenalViewProvider implements vscode.WebviewViewProvider {
           <style>
             :root {
               color-scheme: light dark;
+              --paper-bg: color-mix(in srgb, var(--vscode-sideBar-background) 86%, #f8f5ee 14%);
+              --paper-ink: color-mix(in srgb, var(--vscode-foreground) 78%, #20150f 22%);
+              --paper-muted: color-mix(in srgb, var(--vscode-descriptionForeground) 84%, #6f6358 16%);
+              --panel-border: color-mix(in srgb, var(--vscode-editorWidget-border, #cfcbc1) 72%, #8d7d68 28%);
             }
             * { box-sizing: border-box; }
             body {
               margin: 0;
-              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-              color: var(--vscode-foreground);
+              color: var(--paper-ink);
+              font-family: "Avenir Next", "Segoe UI", sans-serif;
               background:
-                radial-gradient(circle at top right, rgba(20, 184, 166, 0.08), transparent 28%),
-                linear-gradient(180deg, var(--vscode-sideBar-background), color-mix(in srgb, var(--vscode-editor-background) 88%, white 12%));
+                radial-gradient(circle at top, rgba(244, 189, 102, 0.14), transparent 34%),
+                linear-gradient(180deg, color-mix(in srgb, var(--paper-bg) 92%, #fff8ea 8%), color-mix(in srgb, var(--paper-bg) 94%, #e8dcc6 6%));
             }
             .arsenal-shell {
               padding: 16px 14px 18px;
@@ -144,31 +265,62 @@ export class ArsenalViewProvider implements vscode.WebviewViewProvider {
               gap: 14px;
             }
             .arsenal-hero {
-              padding: 16px;
-              border-radius: 18px;
-              border: 1px solid color-mix(in srgb, var(--vscode-editorWidget-border, #d9dee7) 70%, transparent);
-              background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(248,250,252,0.96));
-              box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+              position: relative;
+              overflow: hidden;
+              padding: 18px 16px 16px;
+              border-radius: 20px;
+              border: 1px solid var(--panel-border);
+              background:
+                linear-gradient(180deg, rgba(255,255,255,0.92), rgba(249,243,229,0.98)),
+                repeating-linear-gradient(0deg, rgba(89, 63, 37, 0.02), rgba(89, 63, 37, 0.02) 1px, transparent 1px, transparent 6px);
+              box-shadow: 0 14px 34px rgba(43, 23, 8, 0.08);
+            }
+            .arsenal-hero::after {
+              content: "";
+              position: absolute;
+              inset: auto -34px -48px auto;
+              width: 140px;
+              height: 140px;
+              border-radius: 999px;
+              background: radial-gradient(circle, rgba(217, 119, 6, 0.18), transparent 68%);
+              pointer-events: none;
             }
             .arsenal-eyebrow {
+              display: inline-flex;
+              align-items: center;
+              gap: 6px;
               font-size: 11px;
-              letter-spacing: 0.08em;
+              letter-spacing: 0.12em;
               text-transform: uppercase;
-              color: color-mix(in srgb, var(--vscode-descriptionForeground) 84%, #475569 16%);
-              font-weight: 700;
+              color: var(--paper-muted);
+              font-weight: 800;
+            }
+            .arsenal-eyebrow::before {
+              content: "";
+              width: 10px;
+              height: 10px;
+              background:
+                linear-gradient(90deg, #8b5cf6 50%, transparent 50%),
+                linear-gradient(180deg, #f59e0b 50%, transparent 50%);
+              background-size: 5px 5px;
+              border: 1px solid rgba(122, 89, 52, 0.28);
+              image-rendering: pixelated;
             }
             .arsenal-title {
-              margin: 8px 0 6px;
-              font-size: 26px;
-              line-height: 1.1;
-              color: #0f172a;
-              font-weight: 800;
+              margin: 10px 0 6px;
+              font-family: "Iowan Old Style", "Palatino Linotype", serif;
+              font-size: 29px;
+              line-height: 1.02;
+              letter-spacing: -0.02em;
+              color: #1f1b14;
+              font-weight: 700;
             }
             .arsenal-copy {
               margin: 0;
+              max-width: 32ch;
               font-size: 13px;
-              line-height: 1.65;
-              color: #475569;
+              line-height: 1.68;
+              color: #4e4338;
             }
             .arsenal-hero__actions {
               display: flex;
@@ -177,28 +329,30 @@ export class ArsenalViewProvider implements vscode.WebviewViewProvider {
               flex-wrap: wrap;
             }
             .hero-btn {
-              border: 1px solid #d8e2ec;
+              border: 1px solid rgba(105, 77, 47, 0.2);
               border-radius: 12px;
-              padding: 8px 12px;
-              background: #ffffff;
-              color: #1f2937;
+              padding: 9px 12px;
+              background: rgba(255,255,255,0.84);
+              color: #3d2f22;
               font-size: 12px;
-              font-weight: 700;
+              font-weight: 800;
               cursor: pointer;
+              backdrop-filter: blur(8px);
             }
             .hero-btn--primary {
-              background: linear-gradient(180deg, #14b8a6, #0f766e);
-              border-color: #0f766e;
+              background: linear-gradient(180deg, #ef8f32, #c46710);
+              border-color: #a85712;
               color: white;
+              box-shadow: 0 10px 18px rgba(186, 96, 18, 0.24);
             }
             .arsenal-note {
-              padding: 10px 12px;
-              border-radius: 14px;
-              background: rgba(255,255,255,0.8);
-              border: 1px dashed #d6dde8;
+              padding: 11px 12px;
+              border-radius: 16px;
+              background: rgba(255,255,255,0.78);
+              border: 1px dashed rgba(117, 90, 61, 0.24);
               font-size: 12px;
-              line-height: 1.55;
-              color: #475569;
+              line-height: 1.6;
+              color: #5d5143;
             }
             .weapon-list {
               display: flex;
@@ -208,13 +362,15 @@ export class ArsenalViewProvider implements vscode.WebviewViewProvider {
             .weapon-card {
               border-radius: 18px;
               padding: 14px;
-              border: 1px solid color-mix(in srgb, var(--skill-primary) 14%, #d6dce6 86%);
-              background: linear-gradient(180deg, color-mix(in srgb, var(--skill-secondary) 88%, white 12%), #ffffff);
-              box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+              border: 1px solid color-mix(in srgb, var(--skill-primary) 18%, rgba(107, 82, 54, 0.18) 82%);
+              background:
+                linear-gradient(180deg, color-mix(in srgb, var(--skill-secondary) 88%, white 12%), rgba(255,255,255,0.98)),
+                repeating-linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.18) 1px, transparent 1px, transparent 4px);
+              box-shadow: 0 12px 26px rgba(36, 22, 8, 0.06);
             }
             .weapon-card--featured {
               padding: 16px;
-              box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
+              box-shadow: 0 18px 38px rgba(36, 22, 8, 0.1);
             }
             .weapon-card__header {
               display: flex;
@@ -222,50 +378,70 @@ export class ArsenalViewProvider implements vscode.WebviewViewProvider {
               gap: 12px;
             }
             .weapon-card__icon {
-              width: 58px;
-              height: 58px;
+              width: 62px;
+              height: 62px;
               flex: 0 0 auto;
               border-radius: 18px;
               display: grid;
               place-items: center;
-              background: linear-gradient(180deg, rgba(255,255,255,0.7), rgba(255,255,255,0.98));
-              border: 1px solid rgba(255,255,255,0.86);
-              box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 8px 18px rgba(15, 23, 42, 0.06);
+              background: linear-gradient(180deg, rgba(255,255,255,0.78), rgba(255,255,255,0.98));
+              border: 1px solid rgba(255,255,255,0.9);
+              box-shadow: inset 0 1px 0 rgba(255,255,255,0.82), 0 8px 18px rgba(31, 20, 9, 0.08);
             }
             .weapon-card__icon svg {
-              width: 46px;
-              height: 46px;
+              width: 48px;
+              height: 48px;
               display: block;
             }
             .weapon-card__copy {
               min-width: 0;
               flex: 1;
             }
+            .weapon-card__meta {
+              display: flex;
+              align-items: center;
+              gap: 6px;
+              margin-bottom: 3px;
+              flex-wrap: wrap;
+            }
+            .weapon-card__badge,
+            .weapon-card__type {
+              display: inline-flex;
+              align-items: center;
+              min-height: 20px;
+              padding: 0 7px;
+              border-radius: 999px;
+              font-size: 10px;
+              line-height: 1;
+              text-transform: uppercase;
+              letter-spacing: 0.1em;
+              font-weight: 800;
+            }
+            .weapon-card__badge {
+              background: color-mix(in srgb, var(--skill-accent) 20%, white 80%);
+              color: color-mix(in srgb, var(--skill-primary) 78%, #62452a 22%);
+            }
+            .weapon-card__type {
+              background: rgba(255,255,255,0.68);
+              color: color-mix(in srgb, var(--skill-primary) 74%, #564537 26%);
+            }
             .weapon-card__name {
               font-size: 16px;
               font-weight: 800;
-              color: #0f172a;
-            }
-            .weapon-card__type {
-              margin-top: 3px;
-              font-size: 11px;
-              text-transform: uppercase;
-              letter-spacing: 0.08em;
-              color: color-mix(in srgb, var(--skill-primary) 76%, #475569 24%);
-              font-weight: 700;
+              color: #16120d;
             }
             .weapon-card__desc {
               margin: 12px 0 14px;
               font-size: 12.5px;
               line-height: 1.65;
-              color: #334155;
+              color: #40362c;
             }
             .weapon-card__action {
               width: 100%;
               border: none;
               border-radius: 12px;
               padding: 10px 12px;
-              background: var(--skill-primary);
+              background: linear-gradient(180deg, color-mix(in srgb, var(--skill-accent) 82%, white 18%), var(--skill-primary));
               color: white;
               font-size: 12px;
               font-weight: 800;
@@ -277,19 +453,33 @@ export class ArsenalViewProvider implements vscode.WebviewViewProvider {
               filter: brightness(1.03);
             }
             ${animationsEnabled && animationIntensity === "light" ? `
-              .weapon-card__icon {
-                animation: float 3.6s ease-in-out infinite;
+              .weapon-card {
+                animation: enter 240ms ease-out both;
+                animation-delay: calc(var(--delay-index) * 70ms);
               }
-              .weapon-card:nth-child(2) .weapon-card__icon { animation-delay: 0.5s; }
-              .weapon-card:nth-child(3) .weapon-card__icon { animation-delay: 1s; }
-              .weapon-card:nth-child(4) .weapon-card__icon { animation-delay: 1.4s; }
-              .weapon-card:nth-child(5) .weapon-card__icon { animation-delay: 1.8s; }
+              .weapon-card__icon {
+                animation: float 3.8s ease-in-out infinite;
+                animation-delay: calc(var(--delay-index) * 140ms);
+              }
+              @keyframes enter {
+                from { opacity: 0; transform: translateY(8px); }
+                to { opacity: 1; transform: translateY(0); }
+              }
               @keyframes float {
                 0%, 100% { transform: translateY(0); }
                 50% { transform: translateY(-4px); }
               }
             ` : ""}
+            @media (max-width: 420px) {
+              .arsenal-title {
+                font-size: 26px;
+              }
+              .arsenal-copy {
+                max-width: none;
+              }
+            }
             @media (prefers-reduced-motion: reduce) {
+              .weapon-card,
               .weapon-card__icon {
                 animation: none !important;
               }
@@ -301,17 +491,18 @@ export class ArsenalViewProvider implements vscode.WebviewViewProvider {
             <section class="arsenal-hero">
               <div class="arsenal-eyebrow">ViewerLeaf Companion</div>
               <h1 class="arsenal-title">Academic Arsenal</h1>
-              <p class="arsenal-copy">把学术 workflow 做成一套轻量武器。这里没有 agent，只有你在 VS Code 里真正会反复使用的本地战术。</p>
+              <p class="arsenal-copy">把本地论文 workflow 压成几件能反复挥出的工具。现在内置武器和自定义技能共用一套装填逻辑，动作会直接落到编辑器、命令或 Claude Code 终端里。</p>
               <div class="arsenal-hero__actions">
-                <button class="hero-btn hero-btn--primary" data-action="open-workspace">Open Academic Workspace</button>
+                <button class="hero-btn hero-btn--primary" data-action="open-workspace">Open Workspace</button>
+                <button class="hero-btn" data-action="open-rich-preview">Rich Preview</button>
                 <button class="hero-btn" data-action="show-outline">Project Outline</button>
                 <button class="hero-btn" data-action="install-latex-workshop">LaTeX Workshop</button>
               </div>
             </section>
-            <div class="arsenal-note">PDF 预览、编译和 SyncTeX 依赖 LaTeX Workshop。ViewerLeaf Companion 负责工作台编排、项目级大纲和武器化学术 skill。</div>
+            <div class="arsenal-note">PDF 预览、编译和 SyncTeX 依赖 LaTeX Workshop。自定义技能可从工作区根目录的 <code>.viewerleaf-skills.json</code> 或全局清单导入，并支持把 prompt 预填到 Claude Code 终端。</div>
             <div class="weapon-list">
-              ${featured ? renderSkillCard(featured, true) : ""}
-              ${remaining.map((skill) => renderSkillCard(skill)).join("")}
+              ${featured ? renderSkillCard(featured, 0, true) : ""}
+              ${remaining.map((skill, index) => renderSkillCard(skill, index + 1)).join("")}
             </div>
           </main>
           <script nonce="${nonce}">
