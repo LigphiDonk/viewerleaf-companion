@@ -1,0 +1,65 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="256" y2="256" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0D3B35"/>
+      <stop offset="1" stop-color="#134E48"/>
+    </linearGradient>
+    <linearGradient id="leaf" x1="70" y1="40" x2="190" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5EEAD4"/>
+      <stop offset="1" stop-color="#14B8A6"/>
+    </linearGradient>
+    <linearGradient id="vein" x1="128" y1="60" x2="128" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0F766E"/>
+      <stop offset="1" stop-color="#115E59"/>
+    </linearGradient>
+    <linearGradient id="pen" x1="150" y1="100" x2="200" y2="220" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F0FDFA"/>
+      <stop offset="1" stop-color="#CCFBF1"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background rounded square -->
+  <rect width="256" height="256" rx="48" fill="url(#bg)"/>
+
+  <!-- Subtle glow behind leaf -->
+  <ellipse cx="118" cy="130" rx="70" ry="80" fill="#14B8A6" opacity="0.12"/>
+
+  <!-- Main leaf shape -->
+  <path d="
+    M 120 42
+    C 150 42, 185 65, 192 100
+    C 199 135, 185 175, 155 200
+    C 145 208, 130 212, 118 210
+    C 95 206, 62 180, 52 148
+    C 42 116, 55 72, 85 52
+    C 95 45, 108 42, 120 42Z
+  " fill="url(#leaf)"/>
+
+  <!-- Leaf center vein -->
+  <path d="M 118 58 Q 122 130 135 198" stroke="url(#vein)" stroke-width="4" stroke-linecap="round" fill="none"/>
+
+  <!-- Leaf side veins -->
+  <path d="M 118 85 Q 90 78 72 88" stroke="url(#vein)" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.7"/>
+  <path d="M 120 85 Q 148 76 170 88" stroke="url(#vein)" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.7"/>
+  <path d="M 120 115 Q 88 110 65 125" stroke="url(#vein)" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.7"/>
+  <path d="M 122 115 Q 155 108 180 120" stroke="url(#vein)" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.7"/>
+  <path d="M 124 145 Q 95 142 70 158" stroke="url(#vein)" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.7"/>
+  <path d="M 126 145 Q 158 140 178 152" stroke="url(#vein)" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.7"/>
+  <path d="M 128 172 Q 108 170 85 182" stroke="url(#vein)" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.7"/>
+  <path d="M 130 172 Q 152 168 168 178" stroke="url(#vein)" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.7"/>
+
+  <!-- Pen / quill overlaid on bottom-right -->
+  <g transform="translate(142, 98) rotate(32)">
+    <!-- Pen body -->
+    <rect x="0" y="0" width="8" height="100" rx="3" fill="url(#pen)" opacity="0.95"/>
+    <!-- Pen tip (nib) -->
+    <path d="M 0 100 L 4 118 L 8 100" fill="#F0FDFA" opacity="0.95"/>
+    <!-- Pen top -->
+    <rect x="-1" y="-2" width="10" height="6" rx="2" fill="#CCFBF1" opacity="0.8"/>
+  </g>
+
+  <!-- Small TeX symbol on leaf -->
+  <text x="88" y="162" font-family="serif" font-size="36" font-weight="700" font-style="italic" fill="#0F766E" opacity="0.5">T</text>
+  <text x="106" y="162" font-family="serif" font-size="36" font-weight="400" fill="#0F766E" opacity="0.5" letter-spacing="-3">e</text>
+  <text x="124" y="162" font-family="serif" font-size="36" font-weight="400" fill="#0F766E" opacity="0.5" letter-spacing="-2">X</text>
+</svg>

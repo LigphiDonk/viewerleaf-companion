@@ -10,6 +10,7 @@
     "url": "https://github.com/donkfeng/viewerleaf-companion.git"
   },
   "homepage": "https://github.com/donkfeng/viewerleaf-companion",
+  "icon": "media/icon.png",
   "bugs": {
     "url": "https://github.com/donkfeng/viewerleaf-companion/issues"
   },
