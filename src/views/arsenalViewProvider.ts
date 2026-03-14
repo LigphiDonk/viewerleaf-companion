@@ -312,6 +312,8 @@ export class ArsenalViewProvider implements vscode.WebviewViewProvider {
               position: relative;
               width: calc(100% - 20px);
               max-width: 280px;
+              max-height: calc(100vh - 40px);
+              overflow-y: auto;
               background: var(--vscode-editor-background);
               border: 1px solid color-mix(in srgb, var(--vscode-foreground) 10%, transparent);
               border-radius: 14px;
