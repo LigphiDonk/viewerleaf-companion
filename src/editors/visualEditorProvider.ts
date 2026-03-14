@@ -705,11 +705,13 @@ function buildHtml(webview: vscode.Webview, lines: string[]): string {
       }
     }, true);
 
-    /* ── SyncTeX on click ── */
+    /* ── SyncTeX on Ctrl/Cmd+Click ── */
 
     content.addEventListener("click", (e) => {
+      if (!e.ctrlKey && !e.metaKey) return;
       const div = e.target.closest && e.target.closest(".line");
       if (!div) return;
+      e.preventDefault();
       const idx = parseInt(div.dataset.line);
       vscode.postMessage({ type: "focusLine", line: idx });
     });
