@@ -40,6 +40,14 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "configurationDefaults": {
+      "[latex]": {
+        "editor.wordWrap": "on"
+      },
+      "[bibtex]": {
+        "editor.wordWrap": "on"
+      }
+    },
     "commands": [
       {
         "command": "viewerleaf.openAcademicWorkspace",

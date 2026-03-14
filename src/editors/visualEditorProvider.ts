@@ -154,6 +154,7 @@ function buildHtml(webview: vscode.Webview, lines: string[]): string {
       line-height: 1.65;
       color: var(--vscode-editor-foreground);
       background: var(--vscode-editor-background);
+      overflow-x: hidden;
     }
 
     /* ── Toolbar ── */
@@ -263,14 +264,17 @@ function buildHtml(webview: vscode.Webview, lines: string[]): string {
       flex: 1;
       padding: 8px 0;
       min-width: 0;
+      overflow: hidden;
     }
 
     .line {
       padding: 0 16px;
       min-height: calc(1.65em);
+      max-width: 100%;
       outline: none;
       white-space: pre-wrap;
       word-wrap: break-word;
+      word-break: break-word;
       overflow-wrap: anywhere;
       border-left: 2px solid transparent;
       transition: border-color 120ms ease;
