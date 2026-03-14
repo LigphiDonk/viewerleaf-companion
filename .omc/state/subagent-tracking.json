@@ -44,10 +44,37 @@
       "status": "completed",
       "completed_at": "2026-03-13T11:07:36.280Z",
       "duration_ms": 186614
+    },
+    {
+      "agent_id": "a0b1193592e61272f",
+      "agent_type": "oh-my-claudecode:researcher",
+      "started_at": "2026-03-13T13:28:50.056Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-03-13T13:32:00.441Z",
+      "duration_ms": 190385
+    },
+    {
+      "agent_id": "ad068aa9a060326ae",
+      "agent_type": "Explore",
+      "started_at": "2026-03-13T15:24:13.250Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-03-13T15:25:00.620Z",
+      "duration_ms": 47370
+    },
+    {
+      "agent_id": "ad1e813fa461efeb7",
+      "agent_type": "Explore",
+      "started_at": "2026-03-13T15:24:13.252Z",
+      "parent_mode": "none",
+      "status": "completed",
+      "completed_at": "2026-03-13T15:27:53.739Z",
+      "duration_ms": 220487
     }
   ],
-  "total_spawned": 5,
-  "total_completed": 5,
+  "total_spawned": 8,
+  "total_completed": 8,
   "total_failed": 0,
-  "last_updated": "2026-03-13T13:22:00.196Z"
+  "last_updated": "2026-03-14T01:08:55.153Z"
 }

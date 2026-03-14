@@ -37,6 +37,7 @@ const DEFAULT_THEME_COLORS: Record<WeaponType, AcademicSkill["themeColors"]> = {
 };
 
 const WEAPON_TYPES = new Set<WeaponType>(["blade", "bow", "hammer", "shield", "spear"]);
+const WEAPON_TYPE_ARRAY: WeaponType[] = ["blade", "bow", "hammer", "shield", "spear"];
 const SKILL_ACTION_TYPES = new Set<SkillAction["type"]>(["snippet", "checklist", "command", "claudeCode"]);
 
 interface JsonObject {
@@ -313,6 +314,121 @@ async function defaultFileExists(filePath: string) {
   }
 }
 
+// ── Claude Code skill discovery ──
+
+function hashToWeaponType(str: string): WeaponType {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+  }
+  return WEAPON_TYPE_ARRAY[Math.abs(hash) % WEAPON_TYPE_ARRAY.length] ?? "blade";
+}
+
+interface SkillMdMeta {
+  name: string;
+  description: string;
+}
+
+export function parseSkillMdFrontmatter(content: string): SkillMdMeta | undefined {
+  const fmMatch = content.match(/^---\s*\n([\s\S]*?)\n---/);
+  if (!fmMatch?.[1]) {
+    return undefined;
+  }
+
+  const yaml = fmMatch[1];
+  const nameMatch = yaml.match(/^name:\s*(.+)$/m);
+  const name = nameMatch?.[1]?.trim().replace(/^["']|["']$/g, "");
+  if (!name) {
+    return undefined;
+  }
+
+  let description = "";
+  const lines = yaml.split("\n");
+  let descStarted = false;
+
+  for (const line of lines) {
+    if (!descStarted) {
+      const single = line.match(/^description:\s*(?!\|)(.+)$/);
+      if (single?.[1]) {
+        description = single[1].trim().replace(/^["']|["']$/g, "");
+        break;
+      }
+      if (/^description:\s*\|/.test(line)) {
+        descStarted = true;
+        continue;
+      }
+    } else {
+      if (/^\S/.test(line)) {
+        break;
+      }
+      const trimmed = line.trim();
+      if (trimmed) {
+        description = trimmed;
+        break;
+      }
+    }
+  }
+
+  return { name, description: description || name };
+}
+
+export function getClaudeCodeSkillDirs(workspaceRoots: string[]): string[] {
+  return [
+    path.join(os.homedir(), ".claude", "skills"),
+    ...workspaceRoots.map((root) => path.join(root, ".claude", "skills")),
+  ];
+}
+
+async function discoverClaudeCodeSkills(
+  workspaceRoots: string[],
+  readFile: (p: string) => Promise<string>,
+): Promise<{ skills: AcademicSkill[]; warnings: string[] }> {
+  const skills: AcademicSkill[] = [];
+  const warnings: string[] = [];
+  const seenNames = new Set<string>();
+  const dirs = getClaudeCodeSkillDirs(workspaceRoots);
+
+  for (const dir of dirs) {
+    let entries: string[];
+    try {
+      entries = await fs.readdir(dir);
+    } catch {
+      continue;
+    }
+
+    for (const entry of entries) {
+      const skillMdPath = path.join(dir, entry, "SKILL.md");
+      let content: string;
+      try {
+        content = await readFile(skillMdPath);
+      } catch {
+        continue;
+      }
+
+      const meta = parseSkillMdFrontmatter(content);
+      if (!meta || seenNames.has(meta.name)) {
+        continue;
+      }
+      seenNames.add(meta.name);
+
+      const weaponType = hashToWeaponType(meta.name);
+      skills.push({
+        id: `claude:${meta.name}`,
+        name: meta.name,
+        weaponType,
+        description: meta.description,
+        actionLabel: `/${meta.name}`,
+        themeColors: DEFAULT_THEME_COLORS[weaponType],
+        enabled: true,
+        action: { type: "claudeCode", prompt: `/${meta.name}` },
+        isCustom: true,
+      });
+    }
+  }
+
+  return { skills, warnings };
+}
+
 export async function loadAllSkills(options: LoadAllSkillsOptions = {}): Promise<LoadAllSkillsResult> {
   const builtins = options.builtins ?? BUILTIN_SKILLS;
   if (options.enableCustomSkills === false) {
@@ -361,6 +477,16 @@ export async function loadAllSkills(options: LoadAllSkillsOptions = {}): Promise
     }
   }
 
+  // Discover Claude Code skills from ~/.claude/skills/ and .claude/skills/
+  const claudeResult = await discoverClaudeCodeSkills(options.workspaceRoots ?? [], readFile);
+  warnings.push(...claudeResult.warnings);
+  for (const skill of claudeResult.skills) {
+    if (!seenIds.has(skill.id)) {
+      seenIds.add(skill.id);
+      customSkills.push(skill);
+    }
+  }
+
   return {
     skills: [...builtins, ...customSkills],
     sources: loadedSources,
@@ -401,6 +527,16 @@ export function watchSkillManifests(
 
     const absoluteGlobalPath = resolveGlobalSkillManifestPath(globalManifestPath);
     attachWatcher(new api.RelativePattern(path.dirname(absoluteGlobalPath), path.basename(absoluteGlobalPath)));
+
+    // Watch Claude Code skill directories
+    const claudeGlobalSkillsDir = path.join(os.homedir(), ".claude", "skills");
+    attachWatcher(new api.RelativePattern(claudeGlobalSkillsDir, "*/SKILL.md"));
+    for (const workspaceFolder of api.workspace.workspaceFolders ?? []) {
+      attachWatcher(new api.RelativePattern(
+        path.join(workspaceFolder.uri.fsPath, ".claude", "skills"),
+        "*/SKILL.md",
+      ));
+    }
   };
 
   rebuildWatchers();

@@ -163,6 +163,7 @@ function renderWeaponItem(skill: AcademicSkill, index: number) {
 
   return `
     <button class="weapon-item" data-action="run-skill" data-skill-id="${escapeHtml(skill.id)}"
+            title="${escapeHtml(skill.description)}"
             style="--delay:${index * 60}ms;--skill-accent:${skill.themeColors.accent};--skill-primary:${skill.themeColors.primary}">
       <div class="weapon-item__icon">
         ${renderWeaponIcon(skill)}
