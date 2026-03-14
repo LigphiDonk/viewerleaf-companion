@@ -292,15 +292,13 @@ export class ArsenalViewProvider implements vscode.WebviewViewProvider {
               position: fixed;
               inset: 0;
               z-index: 100;
-              display: flex;
-              align-items: center;
-              justify-content: center;
+              overflow-y: auto;
             }
 
             .overlay[hidden] { display: none; }
 
             .overlay__backdrop {
-              position: absolute;
+              position: fixed;
               inset: 0;
               background: rgba(0, 0, 0, 0.5);
               backdrop-filter: blur(8px);
@@ -312,8 +310,7 @@ export class ArsenalViewProvider implements vscode.WebviewViewProvider {
               position: relative;
               width: calc(100% - 20px);
               max-width: 280px;
-              max-height: calc(100vh - 40px);
-              overflow-y: auto;
+              margin: 20px auto;
               background: var(--vscode-editor-background);
               border: 1px solid color-mix(in srgb, var(--vscode-foreground) 10%, transparent);
               border-radius: 14px;
