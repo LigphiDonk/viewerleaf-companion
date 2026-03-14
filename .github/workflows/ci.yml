@@ -52,3 +52,48 @@ jobs:
           name: viewerleaf-companion-vsix
           path: "*.vsix"
           if-no-files-found: error
+
+  release:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: package-vsix
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read version from package.json
+        id: version
+        run: echo "version=v$(node -p 'require(\"./package.json\").version')" >> "$GITHUB_OUTPUT"
+
+      - name: Check if tag exists
+        id: check_tag
+        run: |
+          if git ls-remote --tags origin "${{ steps.version.outputs.version }}" | grep -q .; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download VSIX
+        if: steps.check_tag.outputs.exists == 'false'
+        uses: actions/download-artifact@v4
+        with:
+          name: viewerleaf-companion-vsix
+
+      - name: Create tag and release
+        if: steps.check_tag.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: ${{ steps.version.outputs.version }}
+          body: |
+            ## ViewerLeaf Companion ${{ steps.version.outputs.version }}
+
+            Download the `.vsix` file below and install via:
+            ```
+            code --install-extension viewerleaf-companion-*.vsix
+            ```
+          files: "*.vsix"
+          generate_release_notes: true
